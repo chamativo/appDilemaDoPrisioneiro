@@ -355,37 +355,47 @@ class PrisonersDilemmaGame {
     renderRanking() {
         const container = document.getElementById('ranking');
         
-        // Recalcular scores dos actions
-        const scores = {
-            Arthur: 0,
-            Laura: 0,
-            Sergio: 0,
-            Larissa: 0
-        };
+        // Mostrar jogos do jogador atual
+        const playerGames = this.getPlayerGames(this.currentPlayer);
         
-        this.gameData.actions
-            .filter(a => a.type === 'gameComplete')
-            .forEach(action => {
-                if (action.scores) {
-                    Object.keys(action.scores).forEach(player => {
-                        scores[player] += action.scores[player];
-                    });
-                }
-            });
-        
-        const sortedPlayers = this.players
-            .map(player => ({
-                name: player,
-                score: scores[player]
-            }))
-            .sort((a, b) => b.score - a.score);
+        if (playerGames.length === 0) {
+            container.innerHTML = '<p>Nenhum jogo completado ainda.</p>';
+            return;
+        }
 
-        container.innerHTML = sortedPlayers.map((player, index) => `
+        container.innerHTML = playerGames.map(game => `
             <div class="ranking-item">
-                <span>${index + 1}º ${player.name}</span>
-                <span>${player.score} pontos</span>
+                <span>vs ${game.opponent}</span>
+                <span style="color: ${game.result === 'vitoria' ? 'green' : game.result === 'empate' ? 'blue' : 'red'}">
+                    ${game.playerScore} - ${game.opponentScore} ${game.result === 'vitoria' ? '✓' : game.result === 'empate' ? '=' : '✗'}
+                </span>
             </div>
         `).join('');
+    }
+
+    getPlayerGames(player) {
+        const completedGames = this.gameData.actions
+            .filter(a => a.type === 'gameComplete')
+            .map(action => {
+                const [player1, player2] = action.gameKey.split('-');
+                const opponent = player1 === player ? player2 : player1;
+                const playerScore = action.scores[player] || 0;
+                const opponentScore = action.scores[opponent] || 0;
+                
+                let result = 'empate';
+                if (playerScore > opponentScore) result = 'vitoria';
+                else if (playerScore < opponentScore) result = 'derrota';
+                
+                return {
+                    opponent,
+                    playerScore,
+                    opponentScore,
+                    result
+                };
+            })
+            .filter(game => game.opponent); // Filtrar jogos válidos
+        
+        return completedGames;
     }
 
     startGame(opponent) {
@@ -426,6 +436,9 @@ class PrisonersDilemmaGame {
         document.getElementById('game-round').textContent = 
             `Rodada ${this.currentRound}/10`;
         
+        // Atualizar indicadores de rodada
+        this.updateRoundIndicators();
+        
         this.hideGameElements();
         
         const roundChoices = this.getRoundChoices(this.currentGame.gameKey, this.currentRound);
@@ -439,6 +452,31 @@ class PrisonersDilemmaGame {
             document.querySelector('.choices').classList.remove('hidden');
             this.enableChoiceButtons();
         }
+    }
+
+    updateRoundIndicators() {
+        const container = document.getElementById('round-indicators');
+        const gameState = this.reconstructGameState(this.currentGame.gameKey);
+        
+        // Criar 10 bolinhas (uma para cada rodada)
+        let html = '';
+        for (let round = 1; round <= 10; round++) {
+            const result = gameState.results.find(r => r.round === round);
+            let dotClass = 'round-dot';
+            let title = `Rodada ${round}`;
+            
+            if (result) {
+                const isPlayer1 = this.currentGame.player1 === this.currentPlayer;
+                const playerPoints = isPlayer1 ? result.player1Points : result.player2Points;
+                
+                dotClass += ` points-${playerPoints}`;
+                title += ` - ${playerPoints} pontos`;
+            }
+            
+            html += `<div class="${dotClass}" title="${title}"></div>`;
+        }
+        
+        container.innerHTML = html;
     }
 
     hideGameElements() {
@@ -557,6 +595,9 @@ class PrisonersDilemmaGame {
                 <span>+${result.player2Points} pontos</span>
             </div>
         `;
+        
+        // Atualizar indicadores após mostrar resultado
+        this.updateRoundIndicators();
     }
 
     nextRound() {

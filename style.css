@@ -11,6 +11,44 @@ body {
     color: #333;
 }
 
+.round-indicators {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 5px;
+    margin: 10px 0;
+    max-width: 100px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.round-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    border: 1px solid #ccc;
+    background: #f0f0f0;
+}
+
+.round-dot.points-5 {
+    background: #4CAF50;
+    border-color: #45a049;
+}
+
+.round-dot.points-3 {
+    background: #2196F3;
+    border-color: #1976D2;
+}
+
+.round-dot.points-1 {
+    background: #FFC107;
+    border-color: #FF8F00;
+}
+
+.round-dot.points-0 {
+    background: #f44336;
+    border-color: #d32f2f;
+}
+
 #app {
     max-width: 400px;
     margin: 0 auto;
