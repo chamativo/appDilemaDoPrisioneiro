@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dilema do Prisioneiro - Torneio Familiar</title>
+    <link rel="stylesheet" href="style.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Tela de seleção de jogador -->
+        <div id="player-selection" class="screen">
+            <h1>Dilema do Prisioneiro</h1>
+            <h2>Quem é você?</h2>
+            <div class="player-buttons">
+                <button class="player-btn" data-player="Arthur">Arthur</button>
+                <button class="player-btn" data-player="Laura">Laura</button>
+                <button class="player-btn" data-player="Sergio">Sergio</button>
+                <button class="player-btn" data-player="Larissa">Larissa</button>
+            </div>
+            <button id="reset-tournament-btn" class="reset-btn">Zerar Torneio</button>
+        </div>
+
+        <!-- Tela de jogos pendentes -->
+        <div id="games-screen" class="screen hidden">
+            <div class="header">
+                <h2 id="current-player-name"></h2>
+                <button id="logout-btn" class="logout">Trocar</button>
+                <button id="debug-btn" class="logout" style="background: orange;">Debug</button>
+            </div>
+            
+            <div class="section">
+                <h3>Jogos Pendentes</h3>
+                <div id="pending-games"></div>
+            </div>
+
+            <div class="section">
+                <h3>Ranking Atual</h3>
+                <div id="ranking"></div>
+            </div>
+        </div>
+
+        <!-- Tela do jogo -->
+        <div id="game-screen" class="screen hidden">
+            <div class="game-header">
+                <h2 id="game-players"></h2>
+                <div id="game-round">Rodada 1/10</div>
+                <button id="debug-game-btn" class="logout" style="background: orange; font-size: 12px;">Debug</button>
+            </div>
+
+            <div class="choices">
+                <h3>Sua escolha:</h3>
+                <div class="choice-buttons">
+                    <button id="cooperate-btn" class="choice-btn cooperate">Cooperar</button>
+                    <button id="defect-btn" class="choice-btn defect">Trair</button>
+                </div>
+            </div>
+
+            <div id="waiting" class="hidden">
+                <p>Aguardando o outro jogador...</p>
+            </div>
+
+            <div id="round-result" class="hidden">
+                <h3>Resultado da Rodada</h3>
+                <div id="result-details"></div>
+                <button id="next-round-btn">Próxima Rodada</button>
+            </div>
+
+            <div id="game-result" class="hidden">
+                <h3>Resultado Final</h3>
+                <div id="final-scores"></div>
+                <button id="back-to-games">Voltar aos Jogos</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
