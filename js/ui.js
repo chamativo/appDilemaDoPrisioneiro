@@ -79,6 +79,10 @@ class GameUI {
     }
 
     updateGamesScreen() {
+        debug.log(`📱 updateGamesScreen() chamado para jogador: ${this.currentPlayer}`);
+        debug.log(`🔍 gameState existe: ${!!this.gameState}`);
+        debug.log(`🔍 gameLogic existe: ${!!this.gameLogic}`);
+        
         this.renderPendingGames();
         this.renderRanking();
     }
@@ -370,21 +374,37 @@ class GameUI {
         debug.log('🐛 Debug button clicked!');
         
         const debugInfo = {
+            version: typeof APP_VERSION !== 'undefined' ? APP_VERSION.number : 'unknown',
             currentPlayer: this.currentPlayer,
             gameState: {
                 initialized: !!this.gameState,
                 actionsCount: this.gameState?.gameData?.actions?.length || 0,
-                hasScores: !!this.gameState?.gameData?.scores
+                hasScores: !!this.gameState?.gameData?.scores,
+                allActions: this.gameState?.gameData?.actions || []
             },
             gameLogic: {
                 initialized: !!this.gameLogic,
-                playersCount: this.gameLogic?.players?.length || 0
+                playersCount: this.gameLogic?.players?.length || 0,
+                players: this.gameLogic?.players || []
             },
             lastActions: this.gameState?.gameData?.actions?.slice(-5) || []
         };
         
-        console.log('=== DEBUG INFO ===', debugInfo);
-        alert(JSON.stringify(debugInfo, null, 2));
+        const debugText = JSON.stringify(debugInfo, null, 2);
+        
+        // Tentar copiar para clipboard
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            navigator.clipboard.writeText(debugText).then(() => {
+                alert('Debug info copiado para área de transferência! Cole aqui no chat.');
+            }).catch(() => {
+                console.log('=== DEBUG INFO ===', debugInfo);
+                alert('Erro no clipboard. Debug info no console (F12 > Console).');
+            });
+        } else {
+            // Fallback para navegadores sem clipboard API
+            console.log('=== DEBUG INFO ===', debugInfo);
+            alert('Clipboard não disponível. Debug info no console (F12 > Console).');
+        }
     }
 
     showGameDebugInfo() {
