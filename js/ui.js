@@ -132,9 +132,20 @@ class GameUI {
     showGamesScreen() {
         this.hideAllScreens();
         document.getElementById('games-screen').classList.remove('hidden');
+        
+        debug.log(`📱 showGamesScreen chamado para ${this.currentPlayer}`);
+        debug.log(`🔍 window.game existe: ${!!window.game}`);
+        debug.log(`🔍 requestGamesList existe: ${!!(window.game && window.game.requestGamesList)}`);
+        
         // GameController irá comandar a atualização da lista
         if (window.game && window.game.requestGamesList) {
+            debug.log(`📱 Chamando requestGamesList para ${this.currentPlayer}`);
             window.game.requestGamesList(this.currentPlayer);
+        } else {
+            debug.log(`❌ Não foi possível chamar requestGamesList`);
+            // Fallback temporário
+            document.getElementById('pending-games').innerHTML = '<p>Carregando jogos...</p>';
+            document.getElementById('new-games').innerHTML = '<p>Carregando novos jogos...</p>';
         }
     }
 
@@ -286,11 +297,18 @@ class GameUI {
     async resetTournament() {
         if (confirm('Tem certeza que deseja zerar todo o torneio? Esta ação não pode ser desfeita.')) {
             debug.log('🗑️ UI: repassando reset para aplicação principal...');
+            debug.log(`🔍 window.game existe: ${!!window.game}`);
+            debug.log(`🔍 resetTournament existe: ${!!(window.game && window.game.resetTournament)}`);
             
             if (window.game && window.game.resetTournament) {
+                debug.log('✅ Chamando resetTournament...');
                 await window.game.resetTournament();
             } else {
                 debug.log('❌ Método resetTournament não encontrado na aplicação principal');
+                debug.log('window.game:', window.game);
+                if (window.game) {
+                    debug.log('Métodos disponíveis:', Object.keys(window.game));
+                }
             }
         }
     }

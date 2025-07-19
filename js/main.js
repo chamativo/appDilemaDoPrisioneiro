@@ -179,5 +179,12 @@ let game, ui; // Para compatibilidade com HTML
 document.addEventListener('DOMContentLoaded', async () => {
     game = new PrisonersDilemmaGame();
     ui = game.ui; // Para compatibilidade com onclick do HTML
+    
+    // Disponibilizar globalmente
+    window.game = game;
+    window.ui = ui;
+    
     await game.initialize();
+    
+    debug.log('🌍 Variáveis globais configuradas: window.game e window.ui');
 });
