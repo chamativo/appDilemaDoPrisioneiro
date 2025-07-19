@@ -106,4 +106,73 @@ class GameLogic {
             a.round === round
         );
     }
+
+    // Processar rodada completa se ambos jogadores fizeram escolha
+    async processRoundIfBothPlayersChose(gameKey, round, gameState, currentPlayer) {
+        if (this.isRoundProcessed(gameKey, round, gameState)) {
+            debug.log(`✅ Rodada ${round} já processada`);
+            return null;
+        }
+
+        const choices = gameState.getRoundChoices(gameKey, round);
+        const [player1, player2] = gameKey.split('-');
+        
+        const result = this.processRound(gameKey, round, player1, player2, choices[player1], choices[player2]);
+
+        // Apenas o player1 (ordem alfabética) salva o resultado para evitar duplicação
+        if (currentPlayer === player1) {
+            debug.log(`📝 ${player1} salvando resultado da rodada ${round}`);
+            await gameState.addAction({
+                type: 'roundResult',
+                gameKey: gameKey,
+                round: round,
+                result: result
+            });
+        }
+
+        return result;
+    }
+
+    // Verificar se há novos resultados para mostrar
+    checkForNewResults(gameState, lastShownResult) {
+        const latestResult = gameState.results[gameState.results.length - 1];
+        
+        if (latestResult && !lastShownResult) {
+            return latestResult;
+        } else if (latestResult && lastShownResult && 
+                   latestResult.round > lastShownResult.round) {
+            return latestResult;
+        }
+        
+        return null;
+    }
+
+    // Finalizar jogo se necessário
+    async endGameIfNeeded(gameKey, gameState, currentPlayer, player1, player2) {
+        // Verificar se resultado final já foi salvo
+        const gameCompleteExists = gameState.gameData.actions.some(a => 
+            a.type === 'gameComplete' && 
+            a.gameKey === gameKey
+        );
+
+        if (gameCompleteExists) {
+            debug.log('🏁 Jogo já marcado como completo');
+            return { shouldEnd: true, alreadyComplete: true };
+        }
+
+        const reconstructedGame = gameState.reconstructGame(gameKey);
+        const totalPoints = this.calculateGameScores(reconstructedGame.results, player1, player2);
+
+        // Apenas o player1 salva o gameComplete
+        if (currentPlayer === player1) {
+            debug.log(`🏁 ${currentPlayer} marcando jogo como completo`);
+            await gameState.addAction({
+                type: 'gameComplete',
+                gameKey: gameKey,
+                scores: totalPoints
+            });
+        }
+
+        return { shouldEnd: true, totalPoints: totalPoints };
+    }
 }

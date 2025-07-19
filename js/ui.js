@@ -230,13 +230,26 @@ class GameUI {
     }
 
     async makeChoice(choice) {
-        // Recalcular rodada atual
+        // Se houver um gameController ativo, usar ele
+        if (window.game && window.game.currentGameController) {
+            const result = await window.game.currentGameController.makePlayerChoice(this.currentPlayer, choice);
+            if (result.success) {
+                this.disableChoiceButtons();
+                debug.log(`🎯 ${this.currentPlayer} escolheu ${choice} via GameController`);
+                document.querySelector('.choices').classList.add('hidden');
+                document.getElementById('waiting').classList.remove('hidden');
+            } else {
+                debug.log(`⚠️ Escolha rejeitada: ${result.reason}`);
+            }
+            return;
+        }
+
+        // Fallback para método antigo (temporário)
         const gameState = this.gameState.reconstructGame(this.currentGame.gameKey);
         const currentRound = gameState.currentRound;
         
         debug.log(`🔄 Recalculando rodada: currentRound=${currentRound}`);
         
-        // Verificar se já jogou
         if (this.gameState.hasPlayerChosenInRound(this.currentGame.gameKey, currentRound, this.currentPlayer)) {
             debug.log(`⚠️ ${this.currentPlayer} já jogou rodada ${currentRound}, ignorando`);
             return;
@@ -254,6 +267,19 @@ class GameUI {
         
         document.querySelector('.choices').classList.add('hidden');
         document.getElementById('waiting').classList.remove('hidden');
+    }
+
+    // Atualizar UI baseado no GameController
+    updateFromGameController(gameController) {
+        if (!gameController || !this.currentGame) return;
+        
+        const status = gameController.getStatus();
+        debug.log(`🔄 Atualizando UI: rodada ${status.currentRound}, completo: ${status.isComplete}`);
+        
+        // Atualizar se necessário baseado no status
+        if (status.isComplete && status.currentRound > 10) {
+            this.endGame();
+        }
     }
 
     showRoundResult(result) {
