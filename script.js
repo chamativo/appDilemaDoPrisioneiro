@@ -26,17 +26,10 @@ class PrisonersDilemmaGame {
     }
 
     async initFirebase() {
-        // Por enquanto, usar apenas localStorage melhorado
-        console.log('Usando localStorage para desenvolvimento local');
-        this.gameData = this.loadGameData();
-        this.initStorageListener();
-        this.init();
-        
-        // Firebase pode ser habilitado depois no Netlify
-        /*
         try {
             firebase.initializeApp(firebaseConfig);
             this.db = firebase.database();
+            console.log('Firebase conectado com sucesso');
             
             this.db.ref('gameData').on('value', (snapshot) => {
                 if (snapshot.exists()) {
@@ -56,10 +49,11 @@ class PrisonersDilemmaGame {
             this.init();
         } catch (error) {
             console.error('Erro Firebase:', error);
+            console.log('Fallback para localStorage');
             this.gameData = this.loadGameData();
+            this.initStorageListener();
             this.init();
         }
-        */
     }
     
     initStorageListener() {
@@ -236,12 +230,26 @@ class PrisonersDilemmaGame {
     }
 
     async saveGameData() {
-        localStorage.setItem('prisonersDilemmaData', JSON.stringify(this.gameData));
-        
-        // Disparar evento customizado para sincronização imediata
-        window.dispatchEvent(new CustomEvent('gameDataChanged', { 
-            detail: this.gameData 
-        }));
+        try {
+            if (this.db) {
+                // Salvar no Firebase para sincronização entre dispositivos
+                await this.db.ref('gameData').set(this.gameData);
+                console.log('Dados salvos no Firebase');
+            } else {
+                // Fallback para localStorage
+                localStorage.setItem('prisonersDilemmaData', JSON.stringify(this.gameData));
+                console.log('Dados salvos no localStorage (fallback)');
+                
+                // Disparar evento customizado para sincronização imediata
+                window.dispatchEvent(new CustomEvent('gameDataChanged', { 
+                    detail: this.gameData 
+                }));
+            }
+        } catch (error) {
+            console.error('Erro ao salvar dados:', error);
+            // Fallback para localStorage em caso de erro
+            localStorage.setItem('prisonersDilemmaData', JSON.stringify(this.gameData));
+        }
     }
 
     selectPlayer(playerName) {
