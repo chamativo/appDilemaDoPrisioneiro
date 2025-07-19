@@ -124,7 +124,7 @@ class GameController {
 
     // Status atual da partida
     getStatus() {
-        const choices = this.gameState.getRoundChoices(this.gameKey, this.currentRound);
+        const choices = this.getRoundChoices();
         const player1Played = !!choices[this.player1];
         const player2Played = !!choices[this.player2];
 
@@ -299,79 +299,44 @@ class GameController {
         };
     }
 
-    // Processar rodada quando ambos jogaram
-    async processRoundIfReady(currentPlayer) {
-        const status = this.getStatus();
-        
-        if (!status.canProcess) {
-            debug.log(`⏳ Rodada ${this.currentRound} não está pronta: aguardando ${status.waitingFor}`);
-            return { processed: false, waitingFor: status.waitingFor };
-        }
-
-        // Verificar se já foi processada
-        if (this.gameLogic.isRoundProcessed(this.gameKey, this.currentRound, this.gameState)) {
-            debug.log(`✅ Rodada ${this.currentRound} já foi processada`);
-            return { processed: true, alreadyProcessed: true };
-        }
-
-        // Processar apenas se for o player1 (evitar duplicação)
-        if (currentPlayer !== this.player1) {
-            debug.log(`⏳ ${currentPlayer} aguardando ${this.player1} processar rodada ${this.currentRound}`);
-            return { processed: false, waitingFor: 'player1_processing' };
-        }
-
-        debug.log(`⚡ Processando rodada ${this.currentRound}: ${this.player1} vs ${this.player2}`);
-
-        const result = await this.gameLogic.processRoundIfBothPlayersChose(
-            this.gameKey,
-            this.currentRound,
-            this.gameState,
-            currentPlayer
-        );
-
-        if (result) {
-            this.results.push(result);
-            debug.log(`📋 Resultado rodada ${this.currentRound}: ${this.player1}=${result.player1Points}, ${this.player2}=${result.player2Points}`);
-        }
-
-        // Avançar para próxima rodada
-        this.currentRound++;
-        debug.log(`➡️ Avançando para rodada ${this.currentRound}`);
-
-        // Verificar se jogo terminou
-        if (this.currentRound > 10) {
-            await this.finalizeGame(currentPlayer);
-        }
-
-        return { 
-            processed: true, 
-            result: result,
-            nextRound: this.currentRound,
-            gameComplete: this.isComplete 
-        };
-    }
+    // MÉTODO REMOVIDO - lógica agora está em processCurrentRound()
 
     // Finalizar jogo
-    async finalizeGame(currentPlayer) {
+    async finalizeGame() {
         if (this.isComplete) {
             debug.log(`🏁 Jogo ${this.gameKey} já está completo`);
             return;
         }
 
-        const endResult = await this.gameLogic.endGameIfNeeded(
-            this.gameKey,
-            this.gameState,
-            currentPlayer,
-            this.player1,
-            this.player2
+        // Verificar se resultado final já foi salvo
+        const gameCompleteExists = this.gameData.actions.some(a => 
+            a.type === 'gameComplete' && 
+            a.gameKey === this.gameKey
         );
 
-        if (endResult.shouldEnd) {
+        if (gameCompleteExists) {
+            debug.log('🏁 Jogo já marcado como completo');
             this.isComplete = true;
-            debug.log(`🏁 Jogo ${this.gameKey} finalizado!`);
+            return { shouldEnd: true, alreadyComplete: true };
         }
 
-        return endResult;
+        const totalPoints = this.calculateFinalScores();
+        
+        // Salvar gameComplete no Firebase
+        const action = {
+            type: 'gameComplete',
+            gameKey: this.gameKey,
+            scores: totalPoints,
+            timestamp: Date.now()
+        };
+
+        this.gameData.actions.push(action);
+        await this.firebase.saveData(this.gameData);
+        
+        this.isComplete = true;
+        debug.log(`🏁 Jogo ${this.gameKey} finalizado com sucesso!`);
+        
+        return { shouldEnd: true, totalPoints: totalPoints };
     }
 
     // Obter últimos resultados para exibição
