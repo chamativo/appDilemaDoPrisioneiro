@@ -16,7 +16,10 @@
       "Bash(move netlify.toml old/)",
       "Bash(move CLAUDE.md old/)",
       "Bash(mv:*)",
-      "Bash(git rm:*)"
+      "Bash(git rm:*)",
+      "Bash(true)",
+      "Bash(npx serve:*)",
+      "Bash(ls:*)"
     ],
     "deny": []
   }

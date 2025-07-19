@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste Básico</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="app">
+        <div class="screen">
+            <h1>Dilema do Prisioneiro</h1>
+            <p>Teste básico funcionando!</p>
+            
+            <div class="player-buttons">
+                <button class="player-btn">Arthur</button>
+                <button class="player-btn">Laura</button>
+                <button class="player-btn">Sergio</button>
+                <button class="player-btn">Larissa</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        console.log('Script carregando...');
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM carregado!');
+            document.querySelector('h1').style.color = 'red';
+        });
+    </script>
+</body>
+</html>
