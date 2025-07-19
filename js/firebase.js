@@ -1,4 +1,4 @@
-// Gerenciamento Firebase
+// Gerenciamento Firebase - Firebase Only
 class FirebaseManager {
     constructor() {
         this.db = null;
@@ -15,22 +15,24 @@ class FirebaseManager {
     }
 
     async connect() {
+        debug.log('🔥 Conectando ao Firebase...');
+        
         try {
-            debug.log('🔥 Iniciando Firebase...');
             firebase.initializeApp(this.config);
             this.db = firebase.database();
             this.connected = true;
-            debug.log('✅ Firebase conectado');
+            debug.log('✅ Firebase conectado com sucesso');
             return true;
         } catch (error) {
-            debug.log(`❌ Erro Firebase: ${error.message}`);
-            this.connected = false;
-            return false;
+            debug.log(`❌ ERRO CRÍTICO - Firebase falhou: ${error.message}`);
+            throw new Error(`Firebase connection failed: ${error.message}`);
         }
     }
 
     async initializeData() {
-        if (!this.connected) return null;
+        if (!this.connected) {
+            throw new Error('Firebase não conectado');
+        }
         
         debug.log('📡 Carregando dados do Firebase...');
         const snapshot = await this.db.ref('gameData').once('value');
@@ -42,51 +44,41 @@ class FirebaseManager {
                 actions: []
             };
             await this.db.ref('gameData').set(initialData);
+            debug.log('✅ Dados iniciais criados no Firebase');
             return initialData;
         }
         
-        return snapshot.val();
+        const data = snapshot.val();
+        debug.log(`✅ Dados carregados do Firebase: ${data.actions.length} actions`);
+        return data;
     }
 
     async saveData(gameData) {
         if (!this.connected) {
-            // Fallback para localStorage
-            localStorage.setItem('prisonersDilemmaData', JSON.stringify(gameData));
-            window.dispatchEvent(new CustomEvent('gameDataChanged', { detail: gameData }));
-            return;
+            throw new Error('Firebase não conectado - não é possível salvar');
         }
 
         try {
             await this.db.ref('gameData').set(gameData);
             debug.log('💾 Dados salvos no Firebase');
         } catch (error) {
-            debug.log(`❌ Erro ao salvar: ${error.message}`);
-            // Fallback
-            localStorage.setItem('prisonersDilemmaData', JSON.stringify(gameData));
+            debug.log(`❌ ERRO ao salvar no Firebase: ${error.message}`);
+            throw error;
         }
     }
 
     onDataChange(callback) {
-        if (!this.connected) return;
+        if (!this.connected) {
+            debug.log('⚠️ Firebase não conectado - listener não configurado');
+            return;
+        }
         
         this.db.ref('gameData').on('value', (snapshot) => {
             if (snapshot.exists()) {
-                callback(snapshot.val());
+                const data = snapshot.val();
+                debug.log(`🔄 Dados mudaram no Firebase: ${data.actions.length} actions`);
+                callback(data);
             }
         });
-    }
-
-    loadFromLocalStorage() {
-        const saved = localStorage.getItem('prisonersDilemmaData');
-        if (saved) {
-            const data = JSON.parse(saved);
-            if (!data.actions) data.actions = [];
-            return data;
-        }
-
-        return {
-            scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
-            actions: []
-        };
     }
 }

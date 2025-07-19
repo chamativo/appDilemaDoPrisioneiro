@@ -9,34 +9,25 @@ class GameState {
     }
 
     async initialize() {
-        const connected = await this.firebase.connect();
+        debug.log('🔄 Inicializando GameState...');
         
-        if (connected) {
+        try {
+            await this.firebase.connect();
             this.gameData = await this.firebase.initializeData();
+            
+            // Configurar listener para mudanças em tempo real
             this.firebase.onDataChange((data) => {
                 this.gameData = data;
                 this.notifyChange();
             });
-        } else {
-            this.gameData = this.firebase.loadFromLocalStorage();
-            this.setupStorageListener();
+            
+            debug.log(`✅ GameState inicializado: ${this.gameData.actions.length} actions`);
+            return this.gameData;
+            
+        } catch (error) {
+            debug.log(`❌ ERRO CRÍTICO na inicialização do GameState: ${error.message}`);
+            throw error;
         }
-
-        return this.gameData;
-    }
-
-    setupStorageListener() {
-        window.addEventListener('storage', (e) => {
-            if (e.key === 'prisonersDilemmaData') {
-                this.gameData = JSON.parse(e.newValue);
-                this.notifyChange();
-            }
-        });
-
-        window.addEventListener('gameDataChanged', (e) => {
-            this.gameData = e.detail;
-            this.notifyChange();
-        });
     }
 
     notifyChange() {
@@ -125,26 +116,17 @@ class GameState {
         return gameActions.length > 0 && !hasCompletedAction;
     }
 
-    // Reset completo do torneio
+    // Reset completo do torneio - Firebase Only
     async reset() {
-        debug.log('🔄 Iniciando reset do torneio...');
+        debug.log('🔄 Iniciando reset do torneio (Firebase only)...');
         
-        // Limpar dados locais
         this.gameData = {
             scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
             actions: []
         };
         
-        // Salvar em todas as fontes possíveis
         await this.firebase.saveData(this.gameData);
-        
-        // Forçar limpeza do localStorage também
-        localStorage.setItem('prisonersDilemmaData', JSON.stringify(this.gameData));
-        
-        // Disparar evento de mudança para sincronizar todas as instâncias
-        this.notifyChange();
-        
-        debug.log('✅ Torneio resetado completamente');
-        debug.log(`📊 Estado após reset: ${this.gameData.actions.length} actions, scores:`, this.gameData.scores);
+        debug.log('✅ Torneio resetado no Firebase');
+        debug.log(`📊 Estado após reset: ${this.gameData.actions.length} actions`);
     }
 }
