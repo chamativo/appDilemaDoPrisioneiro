@@ -85,11 +85,20 @@ class GameUI {
 
     renderPendingGames() {
         const container = document.getElementById('pending-games');
+        
+        debug.log(`🎯 Renderizando jogos para ${this.currentPlayer}`);
+        debug.log(`📊 GameState actions: ${this.gameState.gameData.actions.length}`);
+        debug.log(`🎮 GameLogic players: ${this.gameLogic.players.length}`);
+        
         const pendingGames = this.gameLogic.getPendingGames(this.currentPlayer, this.gameState);
         const activeGames = this.gameLogic.getActiveGames(this.currentPlayer, this.gameState);
         
+        debug.log(`📋 Pending games: ${pendingGames.length}, Active games: ${activeGames.length}`);
+        debug.log(`🔍 Pending: [${pendingGames.join(', ')}], Active: [${activeGames.join(', ')}]`);
+        
         if (pendingGames.length === 0 && activeGames.length === 0) {
             container.innerHTML = '<p>Todos os jogos foram completados!</p>';
+            debug.log('❌ Nenhum jogo encontrado - mostrando mensagem padrão');
             return;
         }
 
@@ -358,11 +367,23 @@ class GameUI {
     }
 
     showDebugInfo() {
+        debug.log('🐛 Debug button clicked!');
+        
         const debugInfo = {
             currentPlayer: this.currentPlayer,
-            gameData: this.gameState.gameData,
-            lastActions: this.gameState.gameData.actions.slice(-10)
+            gameState: {
+                initialized: !!this.gameState,
+                actionsCount: this.gameState?.gameData?.actions?.length || 0,
+                hasScores: !!this.gameState?.gameData?.scores
+            },
+            gameLogic: {
+                initialized: !!this.gameLogic,
+                playersCount: this.gameLogic?.players?.length || 0
+            },
+            lastActions: this.gameState?.gameData?.actions?.slice(-5) || []
         };
+        
+        console.log('=== DEBUG INFO ===', debugInfo);
         alert(JSON.stringify(debugInfo, null, 2));
     }
 
