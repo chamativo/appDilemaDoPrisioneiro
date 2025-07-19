@@ -1,11 +1,80 @@
-// Interface do usuário
+// Interface do usuário - APENAS DISPLAY PASSIVO
 class GameUI {
-    constructor(gameLogic, gameState) {
-        this.gameLogic = gameLogic;
-        this.gameState = gameState;
+    constructor() {
         this.currentPlayer = null;
         this.currentGame = null;
+        this.lastShownResult = null;
+        
+        debug.log('🖥️ UI criada como display passivo');
     }
+
+    // ==================== COMANDOS DO GAMECONTROLLER ====================
+    // GameController comanda a UI através destes métodos
+
+    commandShowChoices(round) {
+        debug.log(`🖥️ COMANDO: Mostrar escolhas para rodada ${round}`);
+        document.getElementById('game-round').textContent = `Rodada ${round}/10`;
+        
+        this.hideGameElements();
+        document.querySelector('.choices').classList.remove('hidden');
+        this.enableChoiceButtons();
+    }
+
+    commandShowWaiting(waitingFor) {
+        debug.log(`🖥️ COMANDO: Mostrar espera - aguardando ${waitingFor}`);
+        this.hideGameElements();
+        document.getElementById('waiting').classList.remove('hidden');
+        this.disableChoiceButtons();
+    }
+
+    commandShowProcessing() {
+        debug.log(`🖥️ COMANDO: Mostrar processamento`);
+        this.hideGameElements();
+        document.getElementById('waiting').classList.remove('hidden');
+        this.disableChoiceButtons();
+    }
+
+    commandShowRoundResult(result) {
+        debug.log(`🖥️ COMANDO: Mostrar resultado da rodada ${result.round}`);
+        this.lastShownResult = result;
+        
+        this.hideGameElements();
+        document.getElementById('round-result').classList.remove('hidden');
+        
+        const choiceText = { cooperate: 'Cooperou', defect: 'Traiu' };
+        document.getElementById('result-details').innerHTML = `
+            <div class="result-row">
+                <span>${this.currentGame.player1}: ${choiceText[result.player1Choice]}</span>
+                <span>+${result.player1Points} pontos</span>
+            </div>
+            <div class="result-row">
+                <span>${this.currentGame.player2}: ${choiceText[result.player2Choice]}</span>
+                <span>+${result.player2Points} pontos</span>
+            </div>
+        `;
+        
+        this.updateRoundIndicators();
+    }
+
+    commandShowFinalResult(totalPoints) {
+        debug.log(`🖥️ COMANDO: Mostrar resultado final do jogo`);
+        
+        this.hideGameElements();
+        document.getElementById('game-result').classList.remove('hidden');
+        
+        document.getElementById('final-scores').innerHTML = `
+            <div class="result-row">
+                <span>${this.currentGame.player1}</span>
+                <span>${totalPoints[this.currentGame.player1]} pontos</span>
+            </div>
+            <div class="result-row">
+                <span>${this.currentGame.player2}</span>
+                <span>${totalPoints[this.currentGame.player2]} pontos</span>
+            </div>
+        `;
+    }
+
+    // ==================== MÉTODOS DE UTILIDADE ====================
 
     initialize() {
         this.setupEventListeners();
