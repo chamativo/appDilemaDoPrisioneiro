@@ -22,38 +22,85 @@ class PrisonersDilemmaGame {
             actions: []
         };
         
+        this.debugLog('🚀 Constructor iniciado');
         this.initFirebase();
     }
 
+    debugLog(message) {
+        console.log(`[DEBUG] ${new Date().toLocaleTimeString()}: ${message}`);
+        
+        // Também mostrar na tela se estivermos na tela de seleção
+        const debugDiv = document.getElementById('debug-console') || this.createDebugConsole();
+        debugDiv.innerHTML += `<div>${new Date().toLocaleTimeString()}: ${message}</div>`;
+        debugDiv.scrollTop = debugDiv.scrollHeight;
+    }
+
+    createDebugConsole() {
+        const debugDiv = document.createElement('div');
+        debugDiv.id = 'debug-console';
+        debugDiv.style.cssText = `
+            position: fixed; 
+            bottom: 10px; 
+            right: 10px; 
+            width: 300px; 
+            height: 200px; 
+            background: rgba(0,0,0,0.8); 
+            color: white; 
+            padding: 10px; 
+            font-size: 10px; 
+            overflow-y: auto; 
+            z-index: 1000;
+            border-radius: 5px;
+        `;
+        document.body.appendChild(debugDiv);
+        return debugDiv;
+    }
+
     async initFirebase() {
+        this.debugLog('🔥 Iniciando Firebase...');
+        
         try {
-            firebase.initializeApp(firebaseConfig);
-            this.db = firebase.database();
-            console.log('Firebase conectado com sucesso');
-            
-            this.db.ref('gameData').on('value', (snapshot) => {
-                if (snapshot.exists()) {
-                    this.gameData = snapshot.val();
-                    this.handleDataUpdate();
-                }
-            });
-            
-            const snapshot = await this.db.ref('gameData').once('value');
-            if (!snapshot.exists()) {
-                await this.db.ref('gameData').set({
-                    scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
-                    actions: []
-                });
-            }
-            
-            this.init();
+            await this.connectFirebase();
         } catch (error) {
-            console.error('Erro Firebase:', error);
-            console.log('Fallback para localStorage');
+            this.debugLog(`❌ Erro Firebase: ${error.message}`);
+            this.debugLog('🔄 Fallback para localStorage');
             this.gameData = this.loadGameData();
             this.initStorageListener();
             this.init();
         }
+    }
+
+    async connectFirebase() {
+        this.debugLog('🔗 Conectando ao Firebase...');
+        firebase.initializeApp(firebaseConfig);
+        this.db = firebase.database();
+        this.debugLog('✅ Firebase inicializado');
+        
+        // Verificar se já foi inicializado para evitar dupla inicialização
+        if (this.initialized) {
+            this.debugLog('⚠️ Jogo já inicializado, pulando init()');
+            return;
+        }
+        
+        this.db.ref('gameData').on('value', (snapshot) => {
+            if (snapshot.exists()) {
+                this.gameData = snapshot.val();
+                this.handleDataUpdate();
+            }
+        });
+        
+        this.debugLog('📡 Carregando dados do Firebase...');
+        const snapshot = await this.db.ref('gameData').once('value');
+        if (!snapshot.exists()) {
+            this.debugLog('📝 Criando dados iniciais no Firebase...');
+            await this.db.ref('gameData').set({
+                scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
+                actions: []
+            });
+        }
+        
+        this.debugLog('🎮 Inicializando jogo com Firebase');
+        this.init();
     }
     
     initStorageListener() {
@@ -82,14 +129,31 @@ class PrisonersDilemmaGame {
     }
 
     init() {
+        if (this.initialized) {
+            this.debugLog('⚠️ init() já foi chamado, ignorando');
+            return;
+        }
+        
+        this.debugLog('🎯 Inicializando jogo...');
         this.initEventListeners();
         this.showPlayerSelection();
+        this.initialized = true;
+        this.debugLog('✅ Jogo inicializado');
     }
 
     initEventListeners() {
-        document.querySelectorAll('.player-btn').forEach(btn => {
+        this.debugLog('🔗 Configurando event listeners...');
+        
+        const playerBtns = document.querySelectorAll('.player-btn');
+        this.debugLog(`👥 Encontrados ${playerBtns.length} botões de jogador`);
+        
+        playerBtns.forEach((btn, index) => {
+            const player = btn.dataset.player;
+            this.debugLog(`🔘 Configurando botão ${index + 1}: ${player}`);
+            
             btn.addEventListener('click', (e) => {
-                this.selectPlayer(e.target.dataset.player);
+                this.debugLog(`🖱️ Clique detectado no jogador: ${player}`);
+                this.selectPlayer(player);
             });
         });
 
@@ -253,6 +317,7 @@ class PrisonersDilemmaGame {
     }
 
     selectPlayer(playerName) {
+        this.debugLog(`🎮 Jogador selecionado: ${playerName}`);
         this.currentPlayer = playerName;
         document.getElementById('current-player-name').textContent = playerName;
         this.showGamesScreen();
