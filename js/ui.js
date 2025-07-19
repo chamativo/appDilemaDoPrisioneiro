@@ -316,10 +316,35 @@ class GameUI {
         
         const status = gameController.getStatus();
         debug.log(`🔄 Atualizando UI: rodada ${status.currentRound}, completo: ${status.isComplete}`);
+        debug.log(`📊 Status: player1Played=${status.player1Played}, player2Played=${status.player2Played}, waitingFor=${status.waitingFor}`);
         
-        // Atualizar se necessário baseado no status
+        // Verificar se há novo resultado para mostrar
+        const latestResult = gameController.getLatestResult();
+        if (latestResult && (!window.game.lastShownResult || latestResult.round > window.game.lastShownResult.round)) {
+            debug.log(`🎊 Novo resultado encontrado: rodada ${latestResult.round}`);
+            this.showRoundResult(latestResult);
+            window.game.lastShownResult = latestResult;
+            return; // Resultado sendo mostrado, não atualizar game screen ainda
+        }
+        
+        // Se jogo terminou
         if (status.isComplete && status.currentRound > 10) {
+            debug.log('🏁 Jogo completo, finalizando...');
             this.endGame();
+            return;
+        }
+        
+        // Se ambos jogaram mas ainda não há resultado, continuar aguardando
+        if (status.waitingFor === 'processing') {
+            debug.log('⏳ Ambos jogaram, aguardando processamento...');
+            return;
+        }
+        
+        // Se jogador atual ainda não jogou esta rodada, mostrar escolhas
+        const isCurrentPlayerTurn = (status.waitingFor === this.currentPlayer || status.waitingFor === 'both');
+        if (isCurrentPlayerTurn) {
+            debug.log(`🎯 Vez de ${this.currentPlayer} jogar`);
+            this.updateGameScreen();
         }
     }
 

@@ -1,9 +1,9 @@
 // Sistema de controle de versão
 const APP_VERSION = {
-    number: "v2024.008",  // Ano.Número sequencial
+    number: "v2024.009",  // Ano.Número sequencial
     buildDate: "2025-01-19", 
     branch: "game-controller-refactor",
-    description: "Fix HTML rendering - move inside try/catch"
+    description: "Fix cross-device UI sync - show results when processed"
 };
 
 // Função para exibir informações da versão
