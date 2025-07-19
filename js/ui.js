@@ -120,6 +120,36 @@ class GameUI {
                 debug.log('❌ Nenhum jogo encontrado - mostrando mensagem padrão');
                 return;
             }
+
+            debug.log('🎨 Iniciando renderização HTML...');
+            let html = '';
+            
+            if (activeGames.length > 0) {
+                debug.log(`🔄 Renderizando ${activeGames.length} jogos ativos...`);
+                html += '<h4>Jogos em Andamento:</h4>';
+                html += activeGames.map(opponent => `
+                    <div class="pending-game">
+                        <span>vs ${opponent}</span>
+                        <button class="play-btn" onclick="ui.startGame('${opponent}')">Continuar</button>
+                    </div>
+                `).join('');
+            }
+            
+            if (pendingGames.length > 0) {
+                debug.log(`🆕 Renderizando ${pendingGames.length} jogos pendentes...`);
+                html += '<h4>Novos Jogos:</h4>';
+                html += pendingGames.map(opponent => `
+                    <div class="pending-game">
+                        <span>vs ${opponent}</span>
+                        <button class="play-btn" onclick="ui.startGame('${opponent}')">Jogar</button>
+                    </div>
+                `).join('');
+            }
+            
+            debug.log(`📝 HTML gerado: ${html.length} caracteres`);
+            container.innerHTML = html;
+            debug.log('✅ HTML inserido no container');
+            
         } catch (error) {
             debug.log(`💥 ERRO em renderPendingGames: ${error.message}`);
             console.error('Erro detalhado:', error);
@@ -127,30 +157,6 @@ class GameUI {
             container.innerHTML = `<p>Erro ao carregar jogos: ${error.message}</p>`;
             return;
         }
-
-        let html = '';
-        
-        if (activeGames.length > 0) {
-            html += '<h4>Jogos em Andamento:</h4>';
-            html += activeGames.map(opponent => `
-                <div class="pending-game">
-                    <span>vs ${opponent}</span>
-                    <button class="play-btn" onclick="ui.startGame('${opponent}')">Continuar</button>
-                </div>
-            `).join('');
-        }
-        
-        if (pendingGames.length > 0) {
-            html += '<h4>Novos Jogos:</h4>';
-            html += pendingGames.map(opponent => `
-                <div class="pending-game">
-                    <span>vs ${opponent}</span>
-                    <button class="play-btn" onclick="ui.startGame('${opponent}')">Jogar</button>
-                </div>
-            `).join('');
-        }
-        
-        container.innerHTML = html;
     }
 
     renderRanking() {
