@@ -747,7 +747,9 @@ class PrisonersDilemmaGame {
             .filter(a => a.gameKey === gameKey && a.round === round && a.choice)
             .sort((a, b) => a.timestamp - b.timestamp);
         
-        roundActions.forEach(action => {
+        this.debugLog(`🔍 getRoundChoices para ${gameKey} rodada ${round}: encontrados ${roundActions.length} actions`);
+        roundActions.forEach((action, index) => {
+            this.debugLog(`   Action ${index + 1}: ${action.player} = ${action.choice}`);
             choices[action.player] = action.choice;
         });
         
