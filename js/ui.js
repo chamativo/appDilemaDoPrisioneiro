@@ -88,21 +88,34 @@ class GameUI {
     }
 
     renderPendingGames() {
-        const container = document.getElementById('pending-games');
-        
-        debug.log(`🎯 Renderizando jogos para ${this.currentPlayer}`);
-        debug.log(`📊 GameState actions: ${this.gameState.gameData.actions.length}`);
-        debug.log(`🎮 GameLogic players: ${this.gameLogic.players.length}`);
-        
-        const pendingGames = this.gameLogic.getPendingGames(this.currentPlayer, this.gameState);
-        const activeGames = this.gameLogic.getActiveGames(this.currentPlayer, this.gameState);
-        
-        debug.log(`📋 Pending games: ${pendingGames.length}, Active games: ${activeGames.length}`);
-        debug.log(`🔍 Pending: [${pendingGames.join(', ')}], Active: [${activeGames.join(', ')}]`);
-        
-        if (pendingGames.length === 0 && activeGames.length === 0) {
-            container.innerHTML = '<p>Todos os jogos foram completados!</p>';
-            debug.log('❌ Nenhum jogo encontrado - mostrando mensagem padrão');
+        try {
+            const container = document.getElementById('pending-games');
+            
+            debug.log(`🎯 Renderizando jogos para ${this.currentPlayer}`);
+            debug.log(`📊 GameState actions: ${this.gameState.gameData.actions.length}`);
+            debug.log(`🎮 GameLogic players: ${this.gameLogic.players.length}`);
+            
+            debug.log(`🔍 Chamando getPendingGames...`);
+            const pendingGames = this.gameLogic.getPendingGames(this.currentPlayer, this.gameState);
+            debug.log(`✅ getPendingGames retornou: ${pendingGames.length} jogos`);
+            
+            debug.log(`🔍 Chamando getActiveGames...`);
+            const activeGames = this.gameLogic.getActiveGames(this.currentPlayer, this.gameState);
+            debug.log(`✅ getActiveGames retornou: ${activeGames.length} jogos`);
+            
+            debug.log(`📋 Pending games: ${pendingGames.length}, Active games: ${activeGames.length}`);
+            debug.log(`🔍 Pending: [${pendingGames.join(', ')}], Active: [${activeGames.join(', ')}]`);
+            
+            if (pendingGames.length === 0 && activeGames.length === 0) {
+                container.innerHTML = '<p>Todos os jogos foram completados!</p>';
+                debug.log('❌ Nenhum jogo encontrado - mostrando mensagem padrão');
+                return;
+            }
+        } catch (error) {
+            debug.log(`💥 ERRO em renderPendingGames: ${error.message}`);
+            console.error('Erro detalhado:', error);
+            const container = document.getElementById('pending-games');
+            container.innerHTML = `<p>Erro ao carregar jogos: ${error.message}</p>`;
             return;
         }
 
