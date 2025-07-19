@@ -320,6 +320,9 @@ class GameUI {
         
         // Verificar se há novo resultado para mostrar
         const latestResult = gameController.getLatestResult();
+        debug.log(`🔍 LatestResult: ${latestResult ? `rodada ${latestResult.round}` : 'null'}`);
+        debug.log(`🔍 LastShownResult: ${window.game.lastShownResult ? `rodada ${window.game.lastShownResult.round}` : 'null'}`);
+        
         if (latestResult && (!window.game.lastShownResult || latestResult.round > window.game.lastShownResult.round)) {
             debug.log(`🎊 Novo resultado encontrado: rodada ${latestResult.round}`);
             this.showRoundResult(latestResult);

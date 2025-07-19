@@ -160,7 +160,9 @@ class GameController {
 
     // Obter últimos resultados para exibição
     getLatestResult() {
-        return this.results[this.results.length - 1] || null;
+        const latest = this.results[this.results.length - 1] || null;
+        debug.log(`🔍 getLatestResult: ${this.results.length} resultados, latest = ${latest ? `rodada ${latest.round}` : 'null'}`);
+        return latest;
     }
 
     // Debug: estado completo da partida
