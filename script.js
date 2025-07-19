@@ -574,18 +574,27 @@ class PrisonersDilemmaGame {
     }
 
     async makeChoice(choice) {
+        // Recalcular rodada atual baseado no estado real antes de jogar
+        const gameState = this.reconstructGameState(this.currentGame.gameKey);
+        const realCurrentRound = gameState.currentRound;
+        
+        this.debugLog(`🔄 Recalculando rodada: this.currentRound=${this.currentRound}, real=${realCurrentRound}`);
+        
         // Verificar se já jogou esta rodada para evitar duplicação
         const existingChoice = this.gameData.actions.find(a => 
             a.gameKey === this.currentGame.gameKey && 
-            a.round === this.currentRound && 
+            a.round === realCurrentRound && 
             a.player === this.currentPlayer &&
             a.choice
         );
         
         if (existingChoice) {
-            this.debugLog(`⚠️ ${this.currentPlayer} já jogou rodada ${this.currentRound}, ignorando nova escolha`);
+            this.debugLog(`⚠️ ${this.currentPlayer} já jogou rodada ${realCurrentRound}, ignorando nova escolha`);
             return;
         }
+        
+        // Atualizar rodada atual com valor correto
+        this.currentRound = realCurrentRound;
         
         this.choices[this.currentPlayer] = choice;
         this.disableChoiceButtons();
