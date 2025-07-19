@@ -255,13 +255,18 @@ class PrisonersDilemmaGame {
             const opponent = this.currentGame.player1 === this.currentPlayer ? 
                 this.currentGame.player2 : this.currentGame.player1;
             
+            this.debugLog(`🎯 Verificando rodada ${this.currentRound}: ${this.currentPlayer}=${roundChoices[this.currentPlayer] || 'nada'}, ${opponent}=${roundChoices[opponent] || 'nada'}`);
+            
             if (roundChoices[this.currentPlayer] && roundChoices[opponent] && !this.processingRound) {
+                this.debugLog(`✅ Ambos jogaram! Processando rodada ${this.currentRound}`);
                 this.choices[opponent] = roundChoices[opponent];
                 this.processingRound = true;
                 setTimeout(() => {
                     this.processRound();
                     this.processingRound = false;
                 }, 100);
+            } else {
+                this.debugLog(`⏳ Aguardando jogadas para rodada ${this.currentRound}`);
             }
         }
         
