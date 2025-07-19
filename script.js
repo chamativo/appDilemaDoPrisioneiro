@@ -574,10 +574,23 @@ class PrisonersDilemmaGame {
     }
 
     async makeChoice(choice) {
+        // Verificar se já jogou esta rodada para evitar duplicação
+        const existingChoice = this.gameData.actions.find(a => 
+            a.gameKey === this.currentGame.gameKey && 
+            a.round === this.currentRound && 
+            a.player === this.currentPlayer &&
+            a.choice
+        );
+        
+        if (existingChoice) {
+            this.debugLog(`⚠️ ${this.currentPlayer} já jogou rodada ${this.currentRound}, ignorando nova escolha`);
+            return;
+        }
+        
         this.choices[this.currentPlayer] = choice;
         this.disableChoiceButtons();
         
-        console.log(`${this.currentPlayer} escolheu ${choice} na rodada ${this.currentRound}`);
+        this.debugLog(`🎯 ${this.currentPlayer} escolheu ${choice} na rodada ${this.currentRound}`);
         
         await this.addAction({
             player: this.currentPlayer,
@@ -753,9 +766,15 @@ class PrisonersDilemmaGame {
             .sort((a, b) => a.timestamp - b.timestamp);
         
         this.debugLog(`🔍 getRoundChoices para ${gameKey} rodada ${round}: encontrados ${roundActions.length} actions`);
+        
+        // Pegar apenas a PRIMEIRA escolha de cada jogador (evitar duplicações)
         roundActions.forEach((action, index) => {
-            this.debugLog(`   Action ${index + 1}: ${action.player} = ${action.choice}`);
-            choices[action.player] = action.choice;
+            if (!choices[action.player]) {
+                this.debugLog(`   ✅ ${action.player} = ${action.choice} (primeira escolha)`);
+                choices[action.player] = action.choice;
+            } else {
+                this.debugLog(`   ⚠️ ${action.player} = ${action.choice} (DUPLICADA, ignorando)`);
+            }
         });
         
         return choices;
