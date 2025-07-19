@@ -127,11 +127,24 @@ class GameState {
 
     // Reset completo do torneio
     async reset() {
+        debug.log('🔄 Iniciando reset do torneio...');
+        
+        // Limpar dados locais
         this.gameData = {
             scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
             actions: []
         };
+        
+        // Salvar em todas as fontes possíveis
         await this.firebase.saveData(this.gameData);
-        debug.log('🔄 Torneio resetado');
+        
+        // Forçar limpeza do localStorage também
+        localStorage.setItem('prisonersDilemmaData', JSON.stringify(this.gameData));
+        
+        // Disparar evento de mudança para sincronizar todas as instâncias
+        this.notifyChange();
+        
+        debug.log('✅ Torneio resetado completamente');
+        debug.log(`📊 Estado após reset: ${this.gameData.actions.length} actions, scores:`, this.gameData.scores);
     }
 }

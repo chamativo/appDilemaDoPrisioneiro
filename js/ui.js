@@ -335,8 +335,24 @@ class GameUI {
 
     async resetTournament() {
         if (confirm('Tem certeza que deseja zerar todo o torneio? Esta ação não pode ser desfeita.')) {
+            debug.log('🗑️ Iniciando reset do torneio via UI...');
+            
+            // Reset do estado
             await this.gameState.reset();
+            
+            // Limpar GameController ativo se houver
+            if (window.game && window.game.currentGameController) {
+                window.game.currentGameController = null;
+                debug.log('🎮 GameController limpo');
+            }
+            
+            // Limpar estado local da UI
+            this.currentGame = null;
+            
+            // Atualizar tela
             this.updateGamesScreen();
+            
+            debug.log('✅ Reset completo via UI');
             alert('Torneio zerado com sucesso!');
         }
     }
