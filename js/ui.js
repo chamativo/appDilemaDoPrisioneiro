@@ -92,9 +92,18 @@ class GameUI {
             const container = document.getElementById('pending-games');
             
             debug.log(`🎯 Renderizando jogos para ${this.currentPlayer}`);
-            debug.log(`📊 GameState actions: ${this.gameState.gameData.actions.length}`);
-            debug.log(`🎮 GameLogic players: ${this.gameLogic.players.length}`);
+            debug.log(`📊 GameState existe: ${!!this.gameState}`);
+            debug.log(`📊 GameState.gameData existe: ${!!this.gameState?.gameData}`);
+            debug.log(`📊 GameState actions: ${this.gameState?.gameData?.actions?.length || 'UNDEFINED'}`);
+            debug.log(`🎮 GameLogic players: ${this.gameLogic?.players?.length || 'UNDEFINED'}`);
             
+            // Verificação defensiva
+            if (!this.gameState?.gameData) {
+                debug.log(`❌ GameState.gameData está undefined!`);
+                container.innerHTML = '<p>Erro: dados do jogo não carregados. Tente recarregar a página.</p>';
+                return;
+            }
+
             debug.log(`🔍 Chamando getPendingGames...`);
             const pendingGames = this.gameLogic.getPendingGames(this.currentPlayer, this.gameState);
             debug.log(`✅ getPendingGames retornou: ${pendingGames.length} jogos`);
