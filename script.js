@@ -1,12 +1,12 @@
-// Configuração Firebase (projeto público de demo)
+// Configuração Firebase
 const firebaseConfig = {
-    apiKey: "AIzaSyBmKQJ7h_fX_5N8DxZfE1qM2VvQx3Jy9Hc",
-    authDomain: "prisoner-dilemma-demo.firebaseapp.com", 
-    databaseURL: "https://prisoner-dilemma-demo-default-rtdb.firebaseio.com",
-    projectId: "prisoner-dilemma-demo",
-    storageBucket: "prisoner-dilemma-demo.appspot.com",
-    messagingSenderId: "123456789",
-    appId: "1:123456789:web:abc123"
+    apiKey: "AIzaSyBBpLIRLhSJbKFaB9EZgSoBzi976Mf44bA",
+    authDomain: "appdilemadoprisioneiro.firebaseapp.com",
+    databaseURL: "https://appdilemadoprisioneiro-default-rtdb.firebaseio.com",
+    projectId: "appdilemadoprisioneiro",
+    storageBucket: "appdilemadoprisioneiro.firebasestorage.app",
+    messagingSenderId: "35385722959",
+    appId: "1:35385722959:web:c9b650c0f7f939ed57823a"
 };
 
 class PrisonersDilemmaGame {
