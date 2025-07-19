@@ -1,5 +1,5 @@
-// Gerenciamento Firebase - Firebase Only
-class FirebaseManager {
+// Módulo Firebase - Apenas conexão e manipulação de dados
+class FirebaseModule {
     constructor() {
         this.db = null;
         this.connected = false;
@@ -15,84 +15,67 @@ class FirebaseManager {
     }
 
     async connect() {
-        debug.log('🔥 Conectando ao Firebase...');
-        
         try {
             firebase.initializeApp(this.config);
             this.db = firebase.database();
             this.connected = true;
-            debug.log('✅ Firebase conectado com sucesso');
+            console.log('✅ Firebase conectado');
             return true;
         } catch (error) {
-            debug.log(`❌ ERRO CRÍTICO - Firebase falhou: ${error.message}`);
-            throw new Error(`Firebase connection failed: ${error.message}`);
-        }
-    }
-
-    async initializeData() {
-        if (!this.connected) {
-            throw new Error('Firebase não conectado');
-        }
-        
-        debug.log('📡 Carregando dados do Firebase...');
-        const snapshot = await this.db.ref('gameData').once('value');
-        
-        if (!snapshot.exists()) {
-            debug.log('📝 Criando dados iniciais no Firebase...');
-            const initialData = {
-                scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
-                actions: []
-            };
-            await this.db.ref('gameData').set(initialData);
-            debug.log('✅ Dados iniciais criados no Firebase');
-            return initialData;
-        }
-        
-        const data = snapshot.val();
-        
-        // Garantir que actions existe
-        if (!data.actions) {
-            debug.log('⚠️ Firebase retornou dados sem actions, corrigindo...');
-            data.actions = [];
-        }
-        
-        debug.log(`✅ Dados carregados do Firebase: ${data.actions.length} actions`);
-        return data;
-    }
-
-    async saveData(gameData) {
-        if (!this.connected) {
-            throw new Error('Firebase não conectado - não é possível salvar');
-        }
-
-        try {
-            await this.db.ref('gameData').set(gameData);
-            debug.log('💾 Dados salvos no Firebase');
-        } catch (error) {
-            debug.log(`❌ ERRO ao salvar no Firebase: ${error.message}`);
+            console.error('❌ Erro Firebase:', error);
             throw error;
         }
     }
 
-    onDataChange(callback) {
-        if (!this.connected) {
-            debug.log('⚠️ Firebase não conectado - listener não configurado');
-            return;
+    async loadData() {
+        if (!this.connected) throw new Error('Firebase não conectado');
+        
+        const snapshot = await this.db.ref('gameData').once('value');
+        
+        if (!snapshot.exists()) {
+            const initialData = {
+                scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
+                actions: []
+            };
+            await this.saveData(initialData);
+            return initialData;
         }
+        
+        const data = snapshot.val();
+        if (!data.actions) data.actions = [];
+        return data;
+    }
+
+    async saveData(gameData) {
+        if (!this.connected) throw new Error('Firebase não conectado');
+        await this.db.ref('gameData').set(gameData);
+    }
+
+    onDataChange(callback) {
+        if (!this.connected) return;
         
         this.db.ref('gameData').on('value', (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
-                
-                // Garantir que actions existe
-                if (!data.actions) {
-                    debug.log('⚠️ Firebase listener: dados sem actions, corrigindo...');
-                    data.actions = [];
-                }
-                
-                debug.log(`🔄 Dados mudaram no Firebase: ${data.actions.length} actions`);
+                if (!data.actions) data.actions = [];
                 callback(data);
             }
         });
+    }
+
+    async addAction(action) {
+        const data = await this.loadData();
+        action.timestamp = Date.now();
+        data.actions.push(action);
+        await this.saveData(data);
+    }
+
+    async reset() {
+        const cleanData = {
+            scores: { Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 },
+            actions: []
+        };
+        await this.saveData(cleanData);
+        return cleanData;
     }
 }

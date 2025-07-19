@@ -9,7 +9,14 @@
       "Bash(mkdir:*)",
       "Bash(git checkout:*)",
       "Bash(rm:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(move index.html old/)",
+      "Bash(move js old/)",
+      "Bash(move style.css old/)",
+      "Bash(move netlify.toml old/)",
+      "Bash(move CLAUDE.md old/)",
+      "Bash(mv:*)",
+      "Bash(git rm:*)"
     ],
     "deny": []
   }

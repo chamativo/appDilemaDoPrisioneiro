@@ -1,158 +1,95 @@
-// Interface do usuário - APENAS DISPLAY PASSIVO
-class GameUI {
+// Módulo UI - Apenas manipulação da interface
+class UIModule {
     constructor() {
         this.currentPlayer = null;
         this.currentGame = null;
-        this.lastShownResult = null;
-        
-        debug.log('🖥️ UI criada como display passivo');
     }
 
-    // ==================== COMANDOS DO GAMECONTROLLER ====================
-    // GameController comanda a UI através destes métodos
-
-    commandShowChoices(round) {
-        debug.log(`🖥️ COMANDO: Mostrar escolhas para rodada ${round}`);
-        document.getElementById('game-round').textContent = `Rodada ${round}/10`;
-        
-        this.hideGameElements();
-        document.querySelector('.choices').classList.remove('hidden');
-        this.enableChoiceButtons();
-    }
-
-    commandShowWaiting(waitingFor) {
-        debug.log(`🖥️ COMANDO: Mostrar espera - aguardando ${waitingFor}`);
-        this.hideGameElements();
-        document.getElementById('waiting').classList.remove('hidden');
-        this.disableChoiceButtons();
-    }
-
-    commandShowProcessing() {
-        debug.log(`🖥️ COMANDO: Mostrar processamento`);
-        this.hideGameElements();
-        document.getElementById('waiting').classList.remove('hidden');
-        this.disableChoiceButtons();
-    }
-
-    commandShowRoundResult(result) {
-        debug.log(`🖥️ COMANDO: Mostrar resultado da rodada ${result.round}`);
-        this.lastShownResult = result;
-        
-        this.hideGameElements();
-        document.getElementById('round-result').classList.remove('hidden');
-        
-        const choiceText = { cooperate: 'Cooperou', defect: 'Traiu' };
-        document.getElementById('result-details').innerHTML = `
-            <div class="result-row">
-                <span>${this.currentGame.player1}: ${choiceText[result.player1Choice]}</span>
-                <span>+${result.player1Points} pontos</span>
-            </div>
-            <div class="result-row">
-                <span>${this.currentGame.player2}: ${choiceText[result.player2Choice]}</span>
-                <span>+${result.player2Points} pontos</span>
-            </div>
-        `;
-        
-        this.updateRoundIndicators();
-    }
-
-    commandShowFinalResult(totalPoints) {
-        debug.log(`🖥️ COMANDO: Mostrar resultado final do jogo`);
-        
-        this.hideGameElements();
-        document.getElementById('game-result').classList.remove('hidden');
-        
-        document.getElementById('final-scores').innerHTML = `
-            <div class="result-row">
-                <span>${this.currentGame.player1}</span>
-                <span>${totalPoints[this.currentGame.player1]} pontos</span>
-            </div>
-            <div class="result-row">
-                <span>${this.currentGame.player2}</span>
-                <span>${totalPoints[this.currentGame.player2]} pontos</span>
-            </div>
-        `;
-    }
-
-    // ==================== MÉTODOS DE UTILIDADE ====================
-
+    // Inicializar event listeners
     initialize() {
         this.setupEventListeners();
         this.showPlayerSelection();
-        debug.log('🎯 UI inicializada');
     }
 
     setupEventListeners() {
-        debug.log('🔗 Configurando event listeners...');
-        
-        // Botões de seleção de jogador
-        const playerBtns = document.querySelectorAll('.player-btn');
-        debug.log(`👥 Encontrados ${playerBtns.length} botões de jogador`);
-        
-        playerBtns.forEach((btn, index) => {
-            const player = btn.dataset.player;
-            debug.log(`🔘 Configurando botão ${index + 1}: ${player}`);
-            
-            btn.addEventListener('click', () => {
-                debug.log(`🖱️ Clique detectado no jogador: ${player}`);
-                this.selectPlayer(player);
+        // Botões de jogador
+        document.querySelectorAll('.player-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const player = e.target.dataset.player;
+                window.app.selectPlayer(player);
             });
         });
 
-        // Outros botões
-        document.getElementById('logout-btn').addEventListener('click', () => this.logout());
-        document.getElementById('cooperate-btn').addEventListener('click', () => this.makeChoice('cooperate'));
-        document.getElementById('defect-btn').addEventListener('click', () => this.makeChoice('defect'));
-        document.getElementById('next-round-btn').addEventListener('click', () => this.nextRound());
-        document.getElementById('back-to-games').addEventListener('click', () => this.showGamesScreen());
-        document.getElementById('reset-tournament-btn').addEventListener('click', () => this.resetTournament());
+        // Botões da tela inicial
+        document.getElementById('ranking-btn').addEventListener('click', () => {
+            window.app.showOverallRanking();
+        });
 
-        // Debug buttons
-        document.getElementById('debug-btn').addEventListener('click', () => this.showDebugInfo());
-        document.getElementById('debug-game-btn').addEventListener('click', () => this.showGameDebugInfo());
+        document.getElementById('reset-btn').addEventListener('click', () => {
+            window.app.resetTournament();
+        });
+
+        document.getElementById('logout-btn').addEventListener('click', () => {
+            window.app.logout();
+        });
+
+        // Botões do jogo
+        document.getElementById('cooperate-btn').addEventListener('click', () => {
+            window.app.makeChoice('cooperate');
+        });
+
+        document.getElementById('defect-btn').addEventListener('click', () => {
+            window.app.makeChoice('defect');
+        });
+
+        document.getElementById('next-round-btn').addEventListener('click', () => {
+            window.app.nextRound();
+        });
+
+        document.getElementById('back-to-games-btn').addEventListener('click', () => {
+            window.app.backToGames();
+        });
+
+        // Modal
+        document.getElementById('close-ranking').addEventListener('click', () => {
+            this.hideRankingModal();
+        });
+
+        document.getElementById('ranking-modal').addEventListener('click', (e) => {
+            if (e.target.id === 'ranking-modal') {
+                this.hideRankingModal();
+            }
+        });
     }
 
-    selectPlayer(playerName) {
-        debug.log(`🎮 Jogador selecionado: ${playerName}`);
-        this.currentPlayer = playerName;
-        document.getElementById('current-player-name').textContent = playerName;
-        this.showGamesScreen();
-    }
-
-    logout() {
-        this.currentPlayer = null;
-        this.showPlayerSelection();
-    }
-
+    // === NAVEGAÇÃO ENTRE TELAS ===
     showPlayerSelection() {
         this.hideAllScreens();
         document.getElementById('player-selection').classList.remove('hidden');
+        this.displayVersion();
     }
 
-    showGamesScreen() {
+    showGamesScreen(playerName) {
+        this.currentPlayer = playerName;
         this.hideAllScreens();
         document.getElementById('games-screen').classList.remove('hidden');
-        
-        debug.log(`📱 showGamesScreen chamado para ${this.currentPlayer}`);
-        debug.log(`🔍 window.game existe: ${!!window.game}`);
-        debug.log(`🔍 requestGamesList existe: ${!!(window.game && window.game.requestGamesList)}`);
-        
-        // GameController irá comandar a atualização da lista
-        if (window.game && window.game.requestGamesList) {
-            debug.log(`📱 Chamando requestGamesList para ${this.currentPlayer}`);
-            window.game.requestGamesList(this.currentPlayer);
-        } else {
-            debug.log(`❌ Não foi possível chamar requestGamesList`);
-            // Fallback temporário
-            document.getElementById('pending-games').innerHTML = '<p>Carregando jogos...</p>';
-            document.getElementById('new-games').innerHTML = '<p>Carregando novos jogos...</p>';
-        }
+        document.getElementById('current-player').textContent = playerName;
     }
 
-    showGameScreen() {
+    showGameScreen(gameKey) {
+        this.currentGame = gameKey;
         this.hideAllScreens();
         document.getElementById('game-screen').classList.remove('hidden');
-        // GameController irá comandar a UI do jogo
+        
+        const [player1, player2] = gameKey.split('-');
+        const displayText = this.currentPlayer === player1 
+            ? `${player1} vs ${player2}` 
+            : `${player2} vs ${player1}`;
+        
+        document.getElementById('game-players').innerHTML = displayText.replace(
+            this.currentPlayer, 
+            `<u>${this.currentPlayer}</u>`
+        );
     }
 
     hideAllScreens() {
@@ -161,108 +98,186 @@ class GameUI {
         });
     }
 
-    // COMANDO: Atualizar lista de jogos (enviado pelo GameController)
-    commandUpdateGamesList(pendingGames, completedGames) {
-        debug.log('🖥️ COMANDO: Atualizar lista de jogos');
-        this.renderPendingGames(pendingGames);
-        this.renderRanking(completedGames);
+    // === ATUALIZAÇÃO DE CONTEÚDO ===
+    updateGamesLists(games) {
+        this.updatePendingGames(games.pending);
+        this.updateNewGames(games.available);
+        this.updateCompletedGames(games.completed);
     }
 
-    renderPendingGames(pendingGames = []) {
+    updatePendingGames(pendingGames) {
         const container = document.getElementById('pending-games');
         
         if (pendingGames.length === 0) {
-            container.innerHTML = '<p>Nenhum jogo pendente. Clique em um dos jogadores abaixo para começar!</p>';
+            container.innerHTML = '<p>Nenhum jogo pendente.</p>';
             return;
         }
-        
+
         container.innerHTML = pendingGames.map(game => `
-            <button class="game-btn" onclick="ui.resumeGame('${game.gameKey}')">
-                vs ${game.opponent}
-                <br><small>Rodada ${game.currentRound}/10</small>
-            </button>
+            <div class="game-item" onclick="window.app.resumeGame('${game.gameKey}')">
+                <div>
+                    <div class="game-opponent">vs ${game.opponent}</div>
+                    <div class="game-status">Rodada ${game.currentRound}/10</div>
+                </div>
+            </div>
         `).join('');
     }
 
-    renderRanking(completedGames = []) {
-        const container = document.getElementById('ranking');
+    updateNewGames(availableGames) {
+        const container = document.getElementById('new-games');
+        
+        if (availableGames.length === 0) {
+            container.innerHTML = '<p>Todos os jogos já foram iniciados!</p>';
+            return;
+        }
+
+        container.innerHTML = availableGames.map(game => `
+            <div class="game-item" onclick="window.app.startNewGame('${game.opponent}')">
+                <div>
+                    <div class="game-opponent">vs ${game.opponent}</div>
+                    <div class="game-status">Clique para iniciar</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateCompletedGames(completedGames) {
+        const container = document.getElementById('completed-games');
         
         if (completedGames.length === 0) {
             container.innerHTML = '<p>Nenhum jogo completado ainda.</p>';
             return;
         }
 
-        container.innerHTML = completedGames.map(game => `
-            <div class="ranking-item">
-                <span>vs ${game.opponent}</span>
-                <span style="color: ${game.result === 'vitoria' ? 'green' : game.result === 'empate' ? 'blue' : 'red'}">
-                    ${game.playerScore} - ${game.opponentScore} ${game.result === 'vitoria' ? '✓' : game.result === 'empate' ? '=' : '✗'}
-                </span>
+        container.innerHTML = completedGames.map(game => {
+            const resultIcon = game.result === 'victory' ? '✓' : 
+                              game.result === 'defeat' ? '✗' : '=';
+            
+            return `
+                <div class="game-item">
+                    <div>
+                        <div class="game-opponent">vs ${game.opponent}</div>
+                        <div class="game-status">${game.playerScore} - ${game.opponentScore}</div>
+                    </div>
+                    <div class="game-result ${game.result}">${resultIcon}</div>
+                </div>
+            `;
+        }).join('');
+    }
+
+    // === ESTADOS DO JOGO ===
+    showGameState(state, data = {}) {
+        this.hideAllGameStates();
+        
+        switch(state) {
+            case 'choice':
+                document.getElementById('choice-state').classList.remove('hidden');
+                this.updateRoundDisplay(data.round);
+                break;
+                
+            case 'waiting':
+                document.getElementById('waiting-state').classList.remove('hidden');
+                break;
+                
+            case 'result':
+                document.getElementById('result-state').classList.remove('hidden');
+                this.displayRoundResult(data.result);
+                break;
+                
+            case 'final':
+                document.getElementById('final-state').classList.remove('hidden');
+                this.displayFinalResult(data.scores);
+                break;
+        }
+    }
+
+    hideAllGameStates() {
+        document.querySelectorAll('.game-state').forEach(state => {
+            state.classList.add('hidden');
+        });
+    }
+
+    updateRoundDisplay(round) {
+        document.getElementById('game-round').textContent = `Rodada ${round}/10`;
+    }
+
+    displayRoundResult(result) {
+        const choiceText = { cooperate: 'Cooperou', defect: 'Traiu' };
+        const [player1, player2] = this.currentGame.split('-');
+        
+        document.getElementById('result-details').innerHTML = `
+            <div class="result-row">
+                <span>${player1}: ${choiceText[result.player1Choice]}</span>
+                <span>+${result.player1Points} pontos</span>
             </div>
-        `).join('');
+            <div class="result-row">
+                <span>${player2}: ${choiceText[result.player2Choice]}</span>
+                <span>+${result.player2Points} pontos</span>
+            </div>
+        `;
     }
 
-    async startGame(opponent) {
-        const players = [this.currentPlayer, opponent].sort();
-        const gameKey = players.join('-');
+    displayFinalResult(scores) {
+        const [player1, player2] = this.currentGame.split('-');
         
-        this.currentGame = {
-            player1: players[0],
-            player2: players[1],
-            gameKey: gameKey
-        };
-        
-        debug.log(`🎮 UI: Iniciando jogo ${gameKey}`);
-        
-        // Criar GameController CHEFE para este jogo
-        const gameController = await window.game.getGameController(gameKey, players[0], players[1]);
-        
-        this.showGameScreen();
+        document.getElementById('final-scores').innerHTML = `
+            <div class="result-row">
+                <span>${player1}</span>
+                <span>${scores[player1]} pontos</span>
+            </div>
+            <div class="result-row">
+                <span>${player2}</span>
+                <span>${scores[player2]} pontos</span>
+            </div>
+        `;
     }
 
-    async resumeGame(gameKey) {
-        debug.log(`🔄 UI: Retomando jogo ${gameKey}`);
-        
-        const players = gameKey.split('-');
-        this.currentGame = {
-            player1: players[0],
-            player2: players[1], 
-            gameKey: gameKey
-        };
-        
-        // Obter GameController para este jogo
-        const gameController = await window.game.getGameController(gameKey, players[0], players[1]);
-        
-        this.showGameScreen();
-    }
-
-    updateRoundIndicators(results = []) {
+    updateRoundIndicators(results) {
         const container = document.getElementById('round-indicators');
         let html = '';
         
         for (let round = 1; round <= 10; round++) {
             const result = results.find(r => r.round === round);
             let dotClass = 'round-dot';
-            let title = `Rodada ${round}`;
             
-            if (result && this.currentGame) {
-                const isPlayer1 = this.currentGame.player1 === this.currentPlayer;
-                const playerPoints = isPlayer1 ? result.player1Points : result.player2Points;
-                
+            if (result) {
+                const [player1] = this.currentGame.split('-');
+                const playerPoints = this.currentPlayer === player1 
+                    ? result.player1Points 
+                    : result.player2Points;
                 dotClass += ` points-${playerPoints}`;
-                title += ` - ${playerPoints} pontos`;
             }
             
-            html += `<div class="${dotClass}" title="${title}"></div>`;
+            html += `<div class="${dotClass}"></div>`;
         }
         
         container.innerHTML = html;
     }
 
-    hideGameElements() {
-        document.getElementById('waiting').classList.add('hidden');
-        document.getElementById('round-result').classList.add('hidden');
-        document.getElementById('game-result').classList.add('hidden');
+    // === MODAL E UTILITÁRIOS ===
+    showRankingModal(ranking) {
+        const content = document.getElementById('ranking-content');
+        
+        content.innerHTML = ranking.map((player, index) => `
+            <div class="ranking-item">
+                <span class="ranking-position">${index + 1}º</span>
+                <span class="ranking-name">${player.name}</span>
+                <span class="ranking-score">${player.totalPoints} pts (${player.games} jogos)</span>
+            </div>
+        `).join('');
+        
+        document.getElementById('ranking-modal').classList.remove('hidden');
+    }
+
+    hideRankingModal() {
+        document.getElementById('ranking-modal').classList.add('hidden');
+    }
+
+    displayVersion() {
+        const versionElement = document.getElementById('version-display');
+        if (window.APP_VERSION) {
+            versionElement.textContent = `${window.APP_VERSION.number} - ${window.APP_VERSION.description}`;
+        }
     }
 
     enableChoiceButtons() {
@@ -273,93 +288,5 @@ class GameUI {
     disableChoiceButtons() {
         document.getElementById('cooperate-btn').disabled = true;
         document.getElementById('defect-btn').disabled = true;
-    }
-
-    // Repassar escolha para o GameController (APENAS REPASSA)
-    async makeChoice(choice) {
-        debug.log(`🖥️ UI repassando escolha ${choice} para GameController`);
-        
-        if (window.game && window.game.currentGameController) {
-            await window.game.currentGameController.playerMadeChoice(this.currentPlayer, choice);
-        } else {
-            debug.log(`❌ Nenhum GameController ativo!`);
-        }
-    }
-
-    // Avançar para próxima rodada (repassar para GameController)
-    nextRound() {
-        debug.log('🖥️ UI: repassando nextRound para GameController');
-        if (window.game && window.game.currentGameController) {
-            window.game.currentGameController.updateUI();
-        }
-    }
-
-    async resetTournament() {
-        if (confirm('Tem certeza que deseja zerar todo o torneio? Esta ação não pode ser desfeita.')) {
-            debug.log('🗑️ UI: repassando reset para aplicação principal...');
-            debug.log(`🔍 window.game existe: ${!!window.game}`);
-            debug.log(`🔍 resetTournament existe: ${!!(window.game && window.game.resetTournament)}`);
-            
-            if (window.game && window.game.resetTournament) {
-                debug.log('✅ Chamando resetTournament...');
-                await window.game.resetTournament();
-            } else {
-                debug.log('❌ Método resetTournament não encontrado na aplicação principal');
-                debug.log('window.game:', window.game);
-                if (window.game) {
-                    debug.log('Métodos disponíveis:', Object.keys(window.game));
-                }
-            }
-        }
-    }
-
-    showDebugInfo() {
-        debug.log('🐛 Debug button clicked!');
-        
-        if (window.game && window.game.getDebugInfo) {
-            window.game.getDebugInfo();
-        } else {
-            const uiDebugInfo = {
-                version: typeof APP_VERSION !== 'undefined' ? APP_VERSION.number : 'unknown',
-                currentPlayer: this.currentPlayer,
-                currentGame: this.currentGame,
-                lastShownResult: this.lastShownResult
-            };
-            
-            const debugText = JSON.stringify(uiDebugInfo, null, 2);
-            
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(debugText).then(() => {
-                    alert('Debug info copiado para área de transferência!');
-                }).catch(() => {
-                    console.log('=== UI DEBUG INFO ===', uiDebugInfo);
-                    alert('Erro no clipboard. Debug info no console.');
-                });
-            } else {
-                console.log('=== UI DEBUG INFO ===', uiDebugInfo);
-                alert('Clipboard não disponível. Debug info no console.');
-            }
-        }
-    }
-
-    showGameDebugInfo() {
-        if (!this.currentGame) {
-            alert('Nenhum jogo ativo para debug.');
-            return;
-        }
-        
-        if (window.game && window.game.currentGameController) {
-            const debugInfo = window.game.currentGameController.getDebugInfo();
-            const debugText = JSON.stringify(debugInfo, null, 2);
-            
-            navigator.clipboard.writeText(debugText).then(() => {
-                alert('Debug info do jogo copiado para área de transferência!');
-            }).catch(() => {
-                console.log('=== GAME DEBUG INFO ===', debugInfo);
-                alert('Debug info no console (F12 > Console).');
-            });
-        } else {
-            alert('Nenhum GameController ativo.');
-        }
     }
 }

@@ -1,0 +1,224 @@
+ESPECIFICAÇÃO COMPLETA - DILEMA DO PRISIONEIRO - TORNEIO FAMILIAR
+=====================================================================
+
+## VISÃO GERAL
+Sistema web para torneio familiar do Dilema do Prisioneiro entre 4 jogadores fixos:
+Arthur, Laura, Sergio, Larissa. Cada jogador pode jogar contra cada um dos outros
+(6 jogos possíveis no total). Cada jogo tem 10 rodadas. Cada jogador joga de seu device.
+
+## TECNOLOGIAS
+- Frontend: HTML + CSS + JavaScript Vanilla (sem frameworks)
+- Backend: Firebase Realtime Database
+- Deploy: Netlify (conectado ao GitHub)
+- Versionamento: Git + GitHub
+
+## JOGADORES FIXOS
+- Arthur
+- Laura  
+- Sergio
+- Larissa
+
+## PARES DE JOGOS POSSÍVEIS
+1. Arthur vs Laura
+2. Arthur vs Sergio  
+3. Arthur vs Larissa
+4. Laura vs Sergio
+5. Laura vs Larissa
+6. Sergio vs Larissa
+
+## REGRAS DO DILEMA DO PRISIONEIRO
+### Pontuação por rodada:
+- Ambos cooperam: 3 pontos cada
+- Um coopera, outro trai: Cooperador = 0, Traidor = 5
+- Ambos traem: 1 ponto cada
+
+### Estrutura de um jogo:
+- 10 rodadas por jogo
+- Cada jogador escolhe "Cooperar" ou "Trair" em cada rodada
+- Pontos acumulam durante o jogo
+- Vencedor = maior pontuação ao final das 10 rodadas
+
+## FUNCIONALIDADES PRINCIPAIS
+
+### 1. TELA INICIAL - SELEÇÃO DE JOGADOR
+- Letreiro bonito escrito "Dilema do Prisioneiro"
+- 4 botões com nomes dos jogadores
+- Botão "Zerar Torneio" (apaga todos os dados)
+- Botão que acessa classificação geral (total de pontos de cada jogador)
+- Versão do sistema visível (ex: v2024.013)
+
+### 2. TELA DE JOGOS - APÓS SELEÇÃO
+- Nome do jogador atual no topo
+- Botão "Trocar" (volta para seleção)
+
+#### Seções da tela:
+**A) Jogos Pendentes:**
+- Lista jogos que foram iniciados mas não terminados
+- Mostra oponente e rodada atual (ex: "vs Laura - Rodada 3/10")
+- Clique retoma o jogo
+
+**B) Novos Jogos:**
+- Lista oponentes com quem ainda não jogou
+- Botão para cada oponente disponível
+- Clique inicia novo jogo
+
+**C) Histórico:**
+- Lista jogos já completados deste jogador
+- Mostra oponente, placar final e resultado (vitória/empate/derrota)
+- Exemplo: "vs Arthur: 25-18 ✓" (verde=vitória, azul=empate, vermelho=derrota)
+
+### 3. TELA DE JOGO - DURANTE PARTIDA
+- Cabeçalho: "Jogador vs Oponente"
+- Underline no nome do jogador
+- Indicador: "Rodada X/10"
+- Indicadores visuais das 10 rodadas (pontinhos coloridos por pontuação)
+
+#### Estados da tela:
+**A) Aguardando Escolha:**
+- Botões "Cooperar" e "Trair"
+- Jogador pode fazer sua escolha
+
+**B) Aguardando Oponente:**
+- Mensagem "Aguardando o outro jogador..."
+- Botões desabilitados
+
+**C) Resultado da Rodada:**
+- Mostra escolhas de ambos jogadores
+- Mostra pontos ganhos por cada um
+- Botão "Próxima Rodada"
+
+**D) Resultado Final:**
+- Placar final do jogo
+- Botão "Voltar aos Jogos"
+
+## SINCRONIZAÇÃO MULTI-DISPOSITIVO
+- Múltiplos jogadores podem jogar simultaneamente em dispositivos diferentes
+- Firebase sincroniza em tempo real
+- Sistema detecta quando ambos jogadores fizeram escolha
+- Processa resultado automaticamente
+- Atualiza todas as telas conectadas
+
+## ESTRUTURA DE DADOS NO FIREBASE
+
+### Modelo Principal:
+```javascript
+gameData = {
+  scores: { 
+    Arthur: 0, Laura: 0, Sergio: 0, Larissa: 0 
+  },
+  actions: [
+    // Array cronológico de todas as ações
+  ]
+}
+```
+
+### Tipos de Actions:
+**1. Escolha do Jogador:**
+```javascript
+{
+  type: 'choice',
+  player: 'Arthur',
+  choice: 'cooperate', // ou 'defect'
+  round: 3,
+  gameKey: 'Arthur-Laura',
+  timestamp: 1705123456789
+}
+```
+
+**2. Resultado da Rodada:**
+```javascript
+{
+  type: 'roundResult',
+  gameKey: 'Arthur-Laura',
+  round: 3,
+  result: {
+    round: 3,
+    player1Choice: 'cooperate',
+    player2Choice: 'defect', 
+    player1Points: 0,
+    player2Points: 5
+  },
+  timestamp: 1705123456790
+}
+```
+
+**3. Jogo Completo:**
+```javascript
+{
+  type: 'gameComplete',
+  gameKey: 'Arthur-Laura',
+  scores: {
+    Arthur: 15,
+    Laura: 28
+  },
+  timestamp: 1705123456791
+}
+```
+
+## SISTEMA DE CHAVES DE JOGO
+- GameKey sempre em ordem alfabética: "Arthur-Laura" (nunca "Laura-Arthur")
+- Garante consistência entre dispositivos
+- Player1 = primeiro alfabeticamente, Player2 = segundo
+
+## CONTROLE DE VERSÃO
+- Arquivo version.js com número sequencial
+- Formato: v2024.XXX (ano + número)
+- Cada deploy incrementa o número
+- Versão aparece no console do navegador
+
+
+## RESET DO TORNEIO
+- Botão "Zerar Torneio" na tela inicial
+- Confirmação obrigatória
+- Apaga TODOS os dados do Firebase
+- Reinicia scores zerados
+- Limpa array de actions
+
+
+## EXPERIÊNCIA DO USUÁRIO
+- Interface simples e intuitiva
+- Responsive (funciona em mobile)
+- Feedback visual claro sobre estados
+- Sincronização transparente
+- Sem necessidade de refresh manual
+
+## CASOS DE USO TÍPICOS
+
+### Cenário 1 - Iniciar Novo Jogo:
+1. Jogador A seleciona seu nome
+2. Ve lista de oponentes disponíveis
+3. Clica em oponente
+4. Entra na tela de jogo
+5. Faz primeira escolha
+6. Aguarda oponente
+
+### Cenário 2 - Continuar Jogo:
+1. Jogador A seleciona seu nome
+2. Ve jogo pendente na lista
+3. Clica no jogo pendente
+4. Sistema mostra estado atual
+5. Continua de onde parou
+
+### Cenário 3 - Jogo Simultâneo:
+1. Jogador A e B entram no mesmo jogo
+2. Ambos fazem escolhas na mesma rodada
+3. Sistema processa automaticamente
+4. Ambos veem resultado simultaneamente
+5. Próxima rodada disponível para ambos
+
+## ARQUITETURA DE CÓDIGO DESEJADA
+- Arquivos diferentes, pequenos, que fazem apenas o seu modulo
+- Uma classe principal que gerencia cada partida
+- Firebase como única fonte de verdade
+- UI com código simples, apenas transmitindo e recebendo informações, sem algoritmos
+- Mínimo de complexidade arquitetural
+- Máximo de funcionalidade confiável
+
+## CRITÉRIOS DE SUCESSO
+✅ Torneio completo funciona end-to-end
+✅ Múltiplos jogadores podem jogar simultaneamente
+✅ Dados nunca se perdem ou corrompem
+✅ Interface intuitiva em qualquer dispositivo
+✅ Debug eficiente quando necessário
+✅ Deploy automático via GitHub → Netlify
+✅ Zero configuração para usuários finais
