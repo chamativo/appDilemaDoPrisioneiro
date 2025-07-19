@@ -1,9 +1,9 @@
 // Sistema de controle de versão
 const APP_VERSION = {
-    number: "v2024.006",  // Ano.Número sequencial
-    buildDate: "2025-01-19",
+    number: "v2024.007",  // Ano.Número sequencial
+    buildDate: "2025-01-19", 
     branch: "game-controller-refactor",
-    description: "Firebase Only - removed localStorage completely"
+    description: "Fix Firebase data.actions undefined bug"
 };
 
 // Função para exibir informações da versão

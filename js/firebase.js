@@ -49,6 +49,13 @@ class FirebaseManager {
         }
         
         const data = snapshot.val();
+        
+        // Garantir que actions existe
+        if (!data.actions) {
+            debug.log('⚠️ Firebase retornou dados sem actions, corrigindo...');
+            data.actions = [];
+        }
+        
         debug.log(`✅ Dados carregados do Firebase: ${data.actions.length} actions`);
         return data;
     }
@@ -76,6 +83,13 @@ class FirebaseManager {
         this.db.ref('gameData').on('value', (snapshot) => {
             if (snapshot.exists()) {
                 const data = snapshot.val();
+                
+                // Garantir que actions existe
+                if (!data.actions) {
+                    debug.log('⚠️ Firebase listener: dados sem actions, corrigindo...');
+                    data.actions = [];
+                }
+                
                 debug.log(`🔄 Dados mudaram no Firebase: ${data.actions.length} actions`);
                 callback(data);
             }
