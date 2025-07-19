@@ -1,13 +1,13 @@
 // Main entry point - orquestra toda a aplicação
-import GameService from '../src/app/gameService.js';
-import TournamentService from '../src/app/tournamentService.js';
-import eventBus from '../src/app/eventBus.js';
-import uiRouter from '../src/ui/uiRouter.js';
-import InitialScreen from '../src/ui/screens/initialScreen.js';
-import DashboardScreen from '../src/ui/screens/dashboardScreen.js';
-import GameScreen from '../src/ui/screens/gameScreen.js';
-import logger from '../src/util/logger.js';
-import { displayVersion } from '../src/util/version.js';
+import GameService from './src/app/gameService.js';
+import TournamentService from './src/app/tournamentService.js';
+import eventBus from './src/app/eventBus.js';
+import uiRouter from './src/ui/uiRouter.js';
+import InitialScreen from './src/ui/screens/initialScreen.js';
+import DashboardScreen from './src/ui/screens/dashboardScreen.js';
+import GameScreen from './src/ui/screens/gameScreen.js';
+import logger from './src/util/logger.js';
+import { displayVersion } from './src/util/version.js';
 
 class PrisonersDilemmaApp {
   constructor() {
