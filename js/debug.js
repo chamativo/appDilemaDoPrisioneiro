@@ -22,7 +22,13 @@ class DebugConsole {
             overflow-y: auto; 
             z-index: 1000;
             border-radius: 5px;
+            font-family: monospace;
         `;
+        
+        // Adicionar cabeçalho com versão
+        const versionInfo = typeof getVersionInfo !== 'undefined' ? getVersionInfo() : 'Versão não detectada';
+        debugDiv.innerHTML = `<div style="color: #00ff00; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 3px; margin-bottom: 5px;">🏷️ ${versionInfo}</div>`;
+        
         document.body.appendChild(debugDiv);
         this.console = debugDiv;
         return debugDiv;
