@@ -51,7 +51,9 @@ class DashboardScreen {
 
   // Atualiza lista de jogos
   updateGamesList(games) {
-    this.updatePendingGames(games.pending || []);
+    // Combina pending e active em "Jogos Pendentes"
+    const pendingAndActive = [...(games.pending || []), ...(games.active || [])];
+    this.updatePendingGames(pendingAndActive);
     this.updateNewGames(games.new || []);
     this.updateCompletedGames(games.completed || []);
   }
@@ -66,7 +68,7 @@ class DashboardScreen {
     container.innerHTML = games.map(game => `
       <div class="game-item" data-game-key="${game.gameKey}">
         <span>vs ${game.opponent}</span>
-        <span>Rodada ${game.round}/10</span>
+        <span>Rodada ${game.currentRound}/10</span>
       </div>
     `).join('');
 

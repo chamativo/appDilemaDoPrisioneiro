@@ -118,9 +118,20 @@ class FirebaseAdapter {
       }
 
       if (processedRounds > 0) {
+        const nextRound = processedRounds + 1;
+        
+        // Se chegou na rodada 11, o jogo está completo
+        if (nextRound > 10) {
+          return {
+            status: 'completed',
+            currentRound: 10,
+            scores: this.calculateCurrentScores(results)
+          };
+        }
+        
         return {
           status: 'active',
-          currentRound: processedRounds + 1,
+          currentRound: nextRound,
           scores: this.calculateCurrentScores(results)
         };
       }

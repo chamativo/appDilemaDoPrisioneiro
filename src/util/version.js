@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.036',
-  description: 'Add detailed logging for tournament game categorization debug'
+  number: 'v2024.037',
+  description: 'Fix game categorization - round 11+ = completed, show active games'
 };
 
 // Exibe versão no console
