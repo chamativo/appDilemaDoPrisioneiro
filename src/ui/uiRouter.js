@@ -132,7 +132,6 @@ class UIRouter {
   executeNextRound(data) {
     const gameScreen = this.screens.get('game');
     if (this.currentScreen === gameScreen && data.gameKey === this.currentGameKey) {
-      gameScreen.gameState.currentRound = data.round; // Atualiza estado interno
       gameScreen.showChoiceState();
       gameScreen.updateRoundIndicator(data.round);
     }

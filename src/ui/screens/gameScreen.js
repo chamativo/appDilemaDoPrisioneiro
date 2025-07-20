@@ -165,6 +165,7 @@ class GameScreen {
 
   // Atualiza indicador de rodada
   updateRoundIndicator(round) {
+    this.gameState.currentRound = round; // Atualiza estado interno
     document.getElementById('round-indicator').textContent = `Rodada ${round}/10`;
     this.updateRoundDots(round);
   }

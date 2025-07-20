@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.042',
-  description: 'Fix GameScreen round state - update currentRound in executeNextRound'
+  number: 'v2024.043',
+  description: 'Fix round state in GameScreen - move logic from uiRouter to updateRoundIndicator'
 };
 
 // Exibe versão no console
