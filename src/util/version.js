@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.047',
-  description: 'Fix round continuation logic - Use last completed round instead of current round'
+  number: 'v2024.048',
+  description: 'Fix dashboard navigation and score persistence after game completion'
 };
 
 // Exibe versão no console

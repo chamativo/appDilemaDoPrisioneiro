@@ -38,6 +38,11 @@ class TournamentService {
       this.handleGameCompleted(data);
     });
 
+    // Player volta ao dashboard
+    eventBus.on('backToDashboard', () => {
+      this.handleBackToDashboard();
+    });
+
     // Jogador saiu - perde controle
     eventBus.on('changePlayer', () => {
       this.currentPlayerName = null;
@@ -109,6 +114,23 @@ class TournamentService {
     // Retoma controle após partida
     if (this.currentPlayerName) {
       console.log(`🏆 TOURNAMENT: Retomando controle para ${this.currentPlayerName}`);
+      const dashboardData = await this.loadPlayerDashboardData(this.currentPlayerName);
+      
+      eventBus.emit('tournamentDashboardReady', {
+        player: this.currentPlayerName,
+        ...dashboardData
+      });
+    }
+  }
+
+  async handleBackToDashboard() {
+    console.log(`🏆 TOURNAMENT: Player voltou ao dashboard - assumindo controle`);
+    
+    if (this.currentPlayerName) {
+      // Navega para dashboard
+      eventBus.emit('tournamentNavigateToDashboard', { player: this.currentPlayerName });
+      
+      // Carrega dados atualizados
       const dashboardData = await this.loadPlayerDashboardData(this.currentPlayerName);
       
       eventBus.emit('tournamentDashboardReady', {

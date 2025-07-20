@@ -172,6 +172,9 @@ class Referee {
       const finalScores = this.calculateFinalScores(gameKey);
       console.log(`🏁 REFEREE: Pontos finais:`, finalScores);
       
+      // Salva jogo como completo no Firebase
+      await this.gameRepo.completeGame(gameKey, finalScores);
+      
       // Primeiro mostra resultado final na UI
       eventBus.emit('showGameComplete', {
         gameKey,
