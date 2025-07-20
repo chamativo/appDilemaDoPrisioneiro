@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.032',
-  description: 'Fix round dots: preserve colors when advancing rounds'
+  number: 'v2024.033',
+  description: 'Implement TournamentService as main tournament flow controller'
 };
 
 // Exibe versão no console

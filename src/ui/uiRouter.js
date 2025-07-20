@@ -30,6 +30,12 @@ class UIRouter {
       console.log('📺 uiRouter: Game complete');
       this.executeGameComplete(data);
     });
+
+    // Comandos do TournamentService
+    eventBus.on('tournamentDashboardReady', (data) => {
+      console.log('📺 uiRouter: TournamentService forneceu dados do dashboard');
+      this.executeDashboardUpdate(data);
+    });
   }
 
   // Injeta dependências dos services
@@ -76,17 +82,25 @@ class UIRouter {
 
   // Orquestra carregamento do dashboard
   async loadDashboardData(screen, data) {
-    console.log('Carregando dados do dashboard para:', data.player);
+    console.log('📺 uiRouter: Carregando dashboard, TournamentService assumirá controle');
     
     // Mostra tela primeiro
     screen.show(data);
     
-    // Busca jogos do jogador (agora recebe instância Player)
-    const games = await this.getGamesByPlayer(data.player);
-    console.log('Jogos encontrados:', games);
-    
-    // Atualiza lista de jogos
-    screen.updateGamesList(games);
+    // TournamentService fornecerá os dados via evento 'tournamentDashboardReady'
+  }
+
+  // Executa atualização do dashboard com dados do TournamentService  
+  executeDashboardUpdate(data) {
+    const dashboardScreen = this.screens.get('dashboard');
+    if (this.currentScreen === dashboardScreen) {
+      console.log('📺 uiRouter: Atualizando dashboard com dados do Tournament');
+      dashboardScreen.updateGamesList({
+        pending: data.pending,
+        new: data.new,
+        completed: data.completed
+      });
+    }
   }
 
   // Orquestra carregamento da tela de jogo
