@@ -1,6 +1,7 @@
 // TELA INICIAL conforme especificação
 import eventBus from '../../app/eventBus.js';
 import uiRouter from '../uiRouter.js';
+import { VERSION, updateVersionDisplay } from '../../util/version.js';
 
 class InitialScreen {
   constructor() {
@@ -25,7 +26,7 @@ class InitialScreen {
           <button id="reset-btn" class="reset-btn">Zerar Torneio</button>
         </div>
         
-        <div class="version" id="version-display">v2024.013</div>
+        <div class="version" id="version-display">${VERSION.number}</div>
       </div>
     `;
   }
@@ -58,6 +59,8 @@ class InitialScreen {
     this.element = document.getElementById('app');
     this.element.innerHTML = this.render();
     this.setupEvents();
+    // Atualiza versão dinamicamente
+    updateVersionDisplay();
   }
 
   // Esconde tela
