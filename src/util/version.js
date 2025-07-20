@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.013',
-  description: 'Clean Architecture Implementation'
+  number: 'v2024.016',
+  description: 'Debug logs for game processing investigation'
 };
 
 // Exibe versão no console
