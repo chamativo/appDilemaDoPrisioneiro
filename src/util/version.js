@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.021',
-  description: 'Fix gameService referee: advance to next round when previous round already processed'
+  number: 'v2024.023',
+  description: 'Implement Player + Referee architecture: clean separation of concerns'
 };
 
 // Exibe versão no console

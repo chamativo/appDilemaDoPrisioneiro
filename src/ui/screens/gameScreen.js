@@ -11,13 +11,13 @@ class GameScreen {
 
   // Renderiza tela de jogo
   render() {
-    const [p1, p2] = this.gameKey.split('-');
-    const opponent = this.currentPlayer === p1 ? p2 : p1;
+    const playerName = this.currentPlayer?.getName() || 'Player';
+    const opponent = this.currentPlayer?.getOpponentName(this.gameKey) || 'Opponent';
     
     return `
       <div id="game-screen" class="screen">
         <div class="game-header">
-          <h2>${this.currentPlayer} vs ${opponent}</h2>
+          <h2>${playerName} vs ${opponent}</h2>
           <div id="round-indicator">Rodada 1/10</div>
           <div id="round-dots" class="round-indicators"></div>
         </div>
@@ -67,9 +67,12 @@ class GameScreen {
       this.makeChoice('defect');
     });
 
-    // Botão próxima rodada
+    // Botão próxima rodada - chama máquina de estados
     document.getElementById('next-round-btn').addEventListener('click', () => {
-      this.showChoiceState();
+      eventBus.emit('advanceToNextRound', {
+        gameKey: this.gameKey,
+        currentRound: this.gameState.currentRound
+      });
     });
 
     // Botão voltar
@@ -80,10 +83,13 @@ class GameScreen {
 
   // Faz escolha
   makeChoice(choice) {
-    if (!this.gameState || !this.gameState.currentRound) return;
+    if (!this.gameState || !this.gameState.currentRound || !this.currentPlayer) return;
+
+    const playerName = this.currentPlayer.getName();
+    console.log('📺 UI: Fazendo escolha', { player: playerName, round: this.gameState.currentRound, choice });
 
     eventBus.emit('makeChoice', {
-      player: this.currentPlayer,
+      player: playerName,
       gameKey: this.gameKey,
       round: this.gameState.currentRound,
       choice

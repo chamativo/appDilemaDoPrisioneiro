@@ -10,10 +10,11 @@ class DashboardScreen {
 
   // Renderiza dashboard
   render() {
+    const playerName = this.currentPlayer?.getName() || 'Nenhum';
     return `
       <div id="dashboard-screen" class="screen">
         <div class="header">
-          <h2 id="current-player">${this.currentPlayer}</h2>
+          <h2 id="current-player">${playerName}</h2>
           <button id="change-player-btn" class="secondary-btn">Trocar jogador</button>
         </div>
         

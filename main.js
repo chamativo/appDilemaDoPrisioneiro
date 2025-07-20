@@ -1,6 +1,7 @@
-// Main entry point - orquestra toda a aplicação
-import GameService from './src/app/gameService.js';
+// Main entry point - orquestra toda a aplicação COM PLAYER + REFEREE
+import Referee from './src/app/referee.js';
 import TournamentService from './src/app/tournamentService.js';
+import { Player } from './src/domain/player.js';
 import eventBus from './src/app/eventBus.js';
 import uiRouter from './src/ui/uiRouter.js';
 import InitialScreen from './src/ui/screens/initialScreen.js';
@@ -11,10 +12,10 @@ import { displayVersion } from './src/util/version.js';
 
 class PrisonersDilemmaApp {
   constructor() {
-    this.gameService = new GameService();
+    this.referee = new Referee();
     this.tournamentService = new TournamentService();
-    this.currentPlayer = null;
-    this.currentGameKey = null;
+    this.currentPlayer = null; // Instância de Player
+    this.players = new Map(); // Cache de Players
   }
 
   async initialize() {
@@ -33,11 +34,11 @@ class PrisonersDilemmaApp {
       };
       
       // Conecta serviços
-      await this.gameService.connect(firebaseConfig);
+      await this.referee.connect(firebaseConfig);
       await this.tournamentService.connect(firebaseConfig);
       
       // Injeta services no uiRouter
-      uiRouter.setServices(this.gameService, this.tournamentService);
+      uiRouter.setServices(this.referee, this.tournamentService);
       
       // Registra telas
       uiRouter.registerScreen('initial', new InitialScreen());
@@ -60,69 +61,87 @@ class PrisonersDilemmaApp {
   }
 
   setupEventListeners() {
-    // Seleção de jogador
+    // Seleção de jogador - cria instância Player
     eventBus.on('playerSelected', (data) => {
-      this.currentPlayer = data.player;
-      logger.info('Jogador selecionado:', data.player);
-      uiRouter.navigateTo('dashboard', { player: data.player });
+      const playerName = data.player;
+      
+      // Cria ou recupera Player
+      if (!this.players.has(playerName)) {
+        this.players.set(playerName, new Player(playerName));
+      }
+      
+      this.currentPlayer = this.players.get(playerName);
+      logger.info('Jogador selecionado:', playerName);
+      uiRouter.navigateTo('dashboard', { player: this.currentPlayer });
     });
 
     // Mudança de jogador
     eventBus.on('changePlayer', () => {
+      if (this.currentPlayer) {
+        this.currentPlayer.backToDashboard();
+      }
       this.currentPlayer = null;
-      this.currentGameKey = null;
       uiRouter.navigateTo('initial');
     });
 
-    // Iniciar novo jogo
+    // Iniciar novo jogo via Player
     eventBus.on('startNewGame', (data) => {
       logger.info('Iniciando novo jogo:', data);
-      const gameKey = this.createGameKey(this.currentPlayer, data.opponent);
-      this.currentGameKey = gameKey;
       
-      // Configura listener do jogo
-      this.gameService.setupGameListener(gameKey);
+      if (!this.currentPlayer) {
+        logger.error('Nenhum player ativo');
+        return;
+      }
       
-      uiRouter.navigateTo('game', {
-        gameKey,
-        currentPlayer: this.currentPlayer,
-        gameState: { currentRound: 1 }
-      });
+      try {
+        const gameKey = this.currentPlayer.startNewGame(data.opponent);
+        logger.info('Jogo iniciado:', gameKey);
+      } catch (error) {
+        logger.error('Erro ao iniciar jogo:', error);
+        alert(`Erro: ${error.message}`);
+      }
     });
 
-    // Retomar jogo
+    // Retomar jogo via Player
     eventBus.on('resumeGame', (data) => {
       logger.info('Retomando jogo:', data);
-      this.currentGameKey = data.gameKey;
       
-      // Configura listener do jogo
-      this.gameService.setupGameListener(data.gameKey);
+      if (!this.currentPlayer) {
+        logger.error('Nenhum player ativo');
+        return;
+      }
       
-      uiRouter.navigateTo('game', {
-        gameKey: data.gameKey,
-        currentPlayer: this.currentPlayer,
-        gameState: { currentRound: 1 } // Será atualizado pelo listener
-      });
+      try {
+        const gameKey = this.currentPlayer.resumeGame(data.gameKey, data.round || 1);
+        logger.info('Jogo retomado:', gameKey);
+      } catch (error) {
+        logger.error('Erro ao retomar jogo:', error);
+        alert(`Erro: ${error.message}`);
+      }
     });
 
-    // Fazer escolha
+    // Fazer escolha via Player
     eventBus.on('makeChoice', async (data) => {
       logger.info('Fazendo escolha:', data);
-      await this.gameService.submitChoice(
-        data.player,
-        data.gameKey,
-        data.round,
-        data.choice
-      );
+      
+      if (!this.currentPlayer) {
+        logger.error('Nenhum player ativo');
+        return;
+      }
+      
+      try {
+        this.currentPlayer.makeChoice(data.choice);
+      } catch (error) {
+        logger.error('Erro ao fazer escolha:', error);
+        alert(`Erro: ${error.message}`);
+      }
     });
 
-    // Voltar ao dashboard
+    // Voltar ao dashboard via Player
     eventBus.on('backToDashboard', () => {
-      if (this.currentGameKey) {
-        this.gameService.stopListening(this.currentGameKey);
-        this.currentGameKey = null;
+      if (this.currentPlayer) {
+        this.currentPlayer.backToDashboard();
       }
-      uiRouter.navigateTo('dashboard', { player: this.currentPlayer });
     });
 
     // Reset do torneio
@@ -130,6 +149,68 @@ class PrisonersDilemmaApp {
       logger.info('Resetando torneio...');
       await this.tournamentService.resetTournament();
       alert('Torneio zerado com sucesso!');
+    });
+
+    // ============ EVENTOS DO REFEREE ============
+    
+    // Referee iniciou jogo
+    eventBus.on('refereeGameStarted', (data) => {
+      logger.info('Referee iniciou jogo:', data);
+      uiRouter.navigateTo('game', {
+        gameKey: data.gameKey,
+        currentPlayer: this.currentPlayer,
+        gameState: { currentRound: data.round }
+      });
+    });
+
+    // Referee retomou jogo
+    eventBus.on('refereeGameResumed', (data) => {
+      logger.info('Referee retomou jogo:', data);
+      uiRouter.navigateTo('game', {
+        gameKey: data.gameKey,
+        currentPlayer: this.currentPlayer,
+        gameState: { currentRound: data.round }
+      });
+    });
+
+    // Referee quer mostrar resultado
+    eventBus.on('refereeShowResult', (data) => {
+      logger.info('Referee mostra resultado:', data);
+      uiRouter.getCurrentScreen()?.showResultState(data.result);
+    });
+
+    // Referee iniciou nova rodada
+    eventBus.on('refereeRoundStarted', (data) => {
+      logger.info('Referee iniciou rodada:', data);
+      if (this.currentPlayer) {
+        this.currentPlayer.updateGameState(data.gameKey, data.round);
+      }
+      uiRouter.getCurrentScreen()?.showChoiceState();
+      uiRouter.getCurrentScreen()?.updateRoundIndicator(data.round);
+    });
+
+    // Referee finalizou jogo
+    eventBus.on('refereeGameComplete', (data) => {
+      logger.info('Referee finalizou jogo:', data);
+      if (this.currentPlayer) {
+        this.currentPlayer.finishGame(data.gameKey);
+      }
+      uiRouter.getCurrentScreen()?.showFinalState({});
+    });
+
+    // Player voltou ao dashboard
+    eventBus.on('playerBackToDashboard', (data) => {
+      logger.info('Player voltou ao dashboard:', data);
+      uiRouter.navigateTo('dashboard', { player: this.currentPlayer });
+    });
+
+    // Avançar para próxima rodada via Player
+    eventBus.on('advanceToNextRound', (data) => {
+      logger.info('Avançando para próxima rodada:', data);
+      
+      if (this.currentPlayer) {
+        this.currentPlayer.continueToNextRound();
+      }
     });
 
     // Mostrar ranking
