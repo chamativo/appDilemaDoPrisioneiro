@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.031',
-  description: 'Remove GameService duplication - Referee is the single authority'
+  number: 'v2024.032',
+  description: 'Fix round dots: preserve colors when advancing rounds'
 };
 
 // Exibe versão no console

@@ -170,20 +170,34 @@ class GameScreen {
   // Atualiza bolinhas das rodadas com feedback visual
   updateRoundDots(currentRound = 1) {
     const container = document.getElementById('round-dots');
-    let html = '';
     
-    for (let round = 1; round <= 10; round++) {
-      let dotClass = 'round-dot';
-      
-      if (round === currentRound) {
-        dotClass += ' current';
+    // Se container vazio, cria todas as bolinhas
+    if (container.children.length === 0) {
+      let html = '';
+      for (let round = 1; round <= 10; round++) {
+        let dotClass = 'round-dot';
+        if (round === currentRound) {
+          dotClass += ' current';
+        }
+        html += `<div class="${dotClass}" data-round="${round}"></div>`;
       }
-      // Não marca como "completed" aqui - deixa isso para quando os pontos forem definidos
-      
-      html += `<div class="${dotClass}" data-round="${round}"></div>`;
+      container.innerHTML = html;
+      return;
     }
     
-    container.innerHTML = html;
+    // Se já existem bolinhas, apenas atualiza a classe 'current'
+    for (let round = 1; round <= 10; round++) {
+      const dot = container.querySelector(`[data-round="${round}"]`);
+      if (dot) {
+        // Remove 'current' de todas
+        dot.classList.remove('current');
+        
+        // Adiciona 'current' apenas na rodada atual
+        if (round === currentRound) {
+          dot.classList.add('current');
+        }
+      }
+    }
   }
 
   // Atualiza bolinha específica com pontos ganhos
