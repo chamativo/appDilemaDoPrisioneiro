@@ -183,6 +183,8 @@ class Referee {
     // Atualiza estado com resultado
     const stateKey = `${gameKey}-${round}`;
     const updatedState = addResult(roundState, {
+      player1: p1,
+      player2: p2,
       player1Choice: p1Choice,
       player2Choice: p2Choice,
       player1Points: resolvedRound.p1Points,
