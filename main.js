@@ -173,11 +173,7 @@ class PrisonersDilemmaApp {
       });
     });
 
-    // Referee quer mostrar resultado
-    eventBus.on('refereeShowResult', (data) => {
-      logger.info('Referee mostra resultado:', data);
-      uiRouter.getCurrentScreen()?.showResultState(data.result);
-    });
+    // Referee eventos são tratados pelo uiRouter
 
     // Referee iniciou nova rodada
     eventBus.on('refereeRoundStarted', (data) => {

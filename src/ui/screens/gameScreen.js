@@ -110,7 +110,7 @@ class GameScreen {
     document.getElementById('waiting-state').classList.remove('hidden');
   }
 
-  showResultState(result) {
+  showResultState(result, round) {
     this.hideAllStates();
     document.getElementById('result-state').classList.remove('hidden');
     
@@ -126,13 +126,14 @@ class GameScreen {
       </div>
     `;
 
-    // Atualiza bolinha da rodada atual com pontos do jogador
-    if (this.currentPlayer && this.gameState) {
+    // Atualiza bolinha usando a rodada que vem do ÁRBITRO
+    if (this.currentPlayer && round) {
       const playerName = this.currentPlayer.getName();
       const [p1, p2] = this.gameKey.split('-');
       const playerPoints = playerName === p1 ? result.player1Points : result.player2Points;
       
-      this.updateRoundDotWithPoints(this.gameState.currentRound, playerPoints);
+      console.log(`🎯 GameScreen: Atualizando bolinha rodada ${round} (do Árbitro) com ${playerPoints} pontos`);
+      this.updateRoundDotWithPoints(round, playerPoints);
     }
   }
 

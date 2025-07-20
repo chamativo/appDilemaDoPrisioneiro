@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.028',
-  description: 'Fix round indicators: all rounds now update correctly with points'
+  number: 'v2024.030',
+  description: 'Fix architecture: UI now uses round from Referee authority'
 };
 
 // Exibe versão no console

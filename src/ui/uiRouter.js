@@ -15,9 +15,9 @@ class UIRouter {
 
   // Configura listeners de eventos - APENAS COMANDOS DIRETOS
   setupEventListeners() {
-    // Comandos específicos do árbitro (gameService)
-    eventBus.on('showGameResult', (data) => {
-      console.log('📺 uiRouter: Showing game result');
+    // Comandos específicos do árbitro (referee)
+    eventBus.on('refereeShowResult', (data) => {
+      console.log('📺 uiRouter: Referee mandou mostrar resultado da rodada', data.round);
       this.executeShowResult(data);
     });
     
@@ -102,7 +102,7 @@ class UIRouter {
   executeShowResult(data) {
     const gameScreen = this.screens.get('game');
     if (this.currentScreen === gameScreen && data.gameKey === this.currentGameKey) {
-      gameScreen.showResultState(data.result);
+      gameScreen.showResultState(data.result, data.round); // Passa rodada do Referee
     }
   }
   
