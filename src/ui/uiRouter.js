@@ -1,13 +1,27 @@
-// UI Router - navegaÁ„o e orquestraÁ„o de carregamento de dados
+// UI Router - navega√ß√£o e orquestra√ß√£o de carregamento de dados
+import eventBus from '../app/eventBus.js';
+
 class UIRouter {
   constructor() {
     this.currentScreen = null;
     this.screens = new Map();
     this.gameService = null;
     this.tournamentService = null;
+    this.currentGameKey = null;
+    
+    // Escuta eventos de atualiza√ß√£o do jogo
+    this.setupEventListeners();
   }
 
-  // Injeta dependÍncias dos services
+  // Configura listeners de eventos
+  setupEventListeners() {
+    eventBus.on('gameUpdated', (data) => {
+      console.log('üéÆ uiRouter received gameUpdated:', data);
+      this.handleGameUpdate(data);
+    });
+  }
+
+  // Injeta depend√™ncias dos services
   setServices(gameService, tournamentService) {
     this.gameService = gameService;
     this.tournamentService = tournamentService;
@@ -26,14 +40,14 @@ class UIRouter {
         this.currentScreen.hide();
       }
 
-      // ObtÈm nova tela
+      // Obt√©m nova tela
       const screen = this.screens.get(screenName);
       if (!screen) {
         console.error(`Screen not found: ${screenName}`);
         return;
       }
 
-      // ORQUESTRA«√O: carrega dados especÌficos para cada tela
+      // ORQUESTRA√á√ÉO: carrega dados espec√≠ficos para cada tela
       if (screenName === 'dashboard') {
         await this.loadDashboardData(screen, data);
       } else if (screenName === 'game') {
@@ -45,7 +59,7 @@ class UIRouter {
 
       this.currentScreen = screen;
     } catch (error) {
-      console.error('Erro na navegaÁ„o:', error);
+      console.error('Erro na navega√ß√£o:', error);
     }
   }
 
@@ -67,18 +81,45 @@ class UIRouter {
   // Orquestra carregamento da tela de jogo
   async loadGameData(screen, data) {
     console.log('Carregando dados do jogo:', data.gameKey);
+    this.currentGameKey = data.gameKey;
     
     // TODO: Buscar estado atual do jogo
     screen.show(data);
   }
 
-  // Busca jogos por jogador (lÛgica tempor·ria)
+  // Manipula atualiza√ß√µes do jogo
+  handleGameUpdate(data) {
+    const { gameKey, gameData } = data;
+    
+    // S√≥ processa se for o jogo atual
+    if (gameKey !== this.currentGameKey) return;
+    
+    // S√≥ processa se estiver na tela de jogo
+    const gameScreen = this.screens.get('game');
+    if (this.currentScreen !== gameScreen) return;
+    
+    console.log('üéÆ Updating game screen with:', gameData);
+    
+    // Determina estado baseado nos dados
+    const { choices, results } = gameData;
+    
+    if (results && results.length > 0) {
+      // Tem resultados - mostrar resultado da √∫ltima rodada
+      const lastResult = results[results.length - 1];
+      if (lastResult && lastResult.result) {
+        console.log('üéÆ Showing result state:', lastResult.result);
+        gameScreen.showResultState(lastResult.result);
+      }
+    }
+  }
+
+  // Busca jogos por jogador (l√≥gica tempor√°ria)
   async getGamesByPlayer(player) {
     try {
       const players = ['Arthur', 'Laura', 'Sergio', 'Larissa'];
       const opponents = players.filter(p => p !== player);
       
-      // Por enquanto, gera jogos fictÌcios
+      // Por enquanto, gera jogos fict√≠cios
       // TODO: Implementar busca real no Firebase
       return {
         pending: [
@@ -98,12 +139,12 @@ class UIRouter {
     }
   }
 
-  // Utilit·rio para criar gameKey
+  // Utilit√°rio para criar gameKey
   createGameKey(player1, player2) {
     return [player1, player2].sort().join('-');
   }
 
-  // ObtÈm tela atual
+  // Obt√©m tela atual
   getCurrentScreen() {
     return this.currentScreen;
   }

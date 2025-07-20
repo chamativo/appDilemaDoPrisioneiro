@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.018',
-  description: 'Fix reset function to clear entire Firebase database'
+  number: 'v2024.019',
+  description: 'Fix UI update - uiRouter listens to gameUpdated events'
 };
 
 // Exibe versão no console
