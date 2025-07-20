@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.041',
-  description: 'Fix round advancement simple - just add refereeRoundStarted listener'
+  number: 'v2024.042',
+  description: 'Fix GameScreen round state - update currentRound in executeNextRound'
 };
 
 // Exibe versão no console
