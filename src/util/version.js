@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.030',
-  description: 'Fix architecture: UI now uses round from Referee authority'
+  number: 'v2024.031',
+  description: 'Remove GameService duplication - Referee is the single authority'
 };
 
 // Exibe versão no console

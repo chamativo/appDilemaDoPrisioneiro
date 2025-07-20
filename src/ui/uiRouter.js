@@ -5,7 +5,7 @@ class UIRouter {
   constructor() {
     this.currentScreen = null;
     this.screens = new Map();
-    this.gameService = null;
+    this.referee = null;
     this.tournamentService = null;
     this.currentGameKey = null;
     
@@ -33,8 +33,8 @@ class UIRouter {
   }
 
   // Injeta dependências dos services
-  setServices(gameService, tournamentService) {
-    this.gameService = gameService;
+  setServices(referee, tournamentService) {
+    this.referee = referee;
     this.tournamentService = tournamentService;
   }
 

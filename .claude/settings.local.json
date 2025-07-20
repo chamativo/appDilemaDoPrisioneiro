@@ -19,7 +19,9 @@
       "Bash(git rm:*)",
       "Bash(true)",
       "Bash(npx serve:*)",
-      "Bash(ls:*)"
+      "Bash(ls:*)",
+      "Bash(git restore:*)",
+      "Bash(git revert:*)"
     ],
     "deny": []
   }
