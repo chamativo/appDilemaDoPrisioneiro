@@ -82,10 +82,11 @@ class FirebaseAdapter {
     }
   }
 
-  // Reset completo do torneio
+  // Reset completo do torneio - LIMPA FIREBASE INTEIRO
   async resetTournament() {
-    await this.db.ref('games').remove();
-    await this.db.ref('scores').remove();
+    console.log('🧹 Limpando Firebase inteiro...');
+    await this.db.ref().remove(); // Remove TUDO
+    console.log('🧹 Firebase completamente limpo!');
   }
 }
 

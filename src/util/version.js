@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.017',
-  description: 'Fix version display on initial screen footer'
+  number: 'v2024.018',
+  description: 'Fix reset function to clear entire Firebase database'
 };
 
 // Exibe versão no console
