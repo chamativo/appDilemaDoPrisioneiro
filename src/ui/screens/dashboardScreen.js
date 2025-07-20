@@ -5,12 +5,12 @@ import uiRouter from '../uiRouter.js';
 class DashboardScreen {
   constructor() {
     this.element = null;
-    this.currentPlayer = null;
+    this.currentPlayerName = null;
   }
 
   // Renderiza dashboard
   render() {
-    const playerName = this.currentPlayer?.getName() || 'Nenhum';
+    const playerName = this.currentPlayerName || 'Nenhum';
     return `
       <div id="dashboard-screen" class="screen">
         <div class="header">
@@ -124,7 +124,7 @@ class DashboardScreen {
 
   // Mostra tela
   show(data) {
-    this.currentPlayer = data.player;
+    this.currentPlayerName = data.player;
     this.element = document.getElementById('app');
     this.element.innerHTML = this.render();
     this.setupEvents();

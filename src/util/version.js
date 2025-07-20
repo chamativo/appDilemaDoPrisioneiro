@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.034',
-  description: 'Complete tournament architecture migration - TournamentService controls flow'
+  number: 'v2024.035',
+  description: 'Fix tournament integration issues - DashboardScreen and Firebase methods'
 };
 
 // Exibe versão no console

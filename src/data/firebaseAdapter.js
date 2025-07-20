@@ -82,6 +82,86 @@ class FirebaseAdapter {
     }
   }
 
+  // Busca dados de um jogo específico
+  async getGameData(gameKey) {
+    try {
+      const snapshot = await this.db.ref(`games/${gameKey}`).once('value');
+      const data = snapshot.val();
+      
+      if (!data) {
+        return null;
+      }
+
+      // Analisa o estado do jogo baseado nos dados
+      const choices = data.choices || {};
+      const results = data.results || {};
+      const complete = data.complete;
+
+      if (complete) {
+        return {
+          status: 'completed',
+          scores: complete.scores,
+          currentRound: 10
+        };
+      }
+
+      // Verifica quantas rodadas foram processadas
+      const processedRounds = Object.keys(results).length;
+      const pendingRounds = Object.keys(choices).filter(round => !results[round]);
+
+      if (pendingRounds.length > 0) {
+        return {
+          status: 'pending',
+          currentRound: parseInt(pendingRounds[0]),
+          scores: this.calculateCurrentScores(results)
+        };
+      }
+
+      if (processedRounds > 0) {
+        return {
+          status: 'active',
+          currentRound: processedRounds + 1,
+          scores: this.calculateCurrentScores(results)
+        };
+      }
+
+      return {
+        status: 'new',
+        currentRound: 1,
+        scores: {}
+      };
+    } catch (error) {
+      console.error('Erro ao buscar dados do jogo:', error);
+      return null;
+    }
+  }
+
+  // Busca scores totais dos jogadores
+  async getTotalScores() {
+    try {
+      const snapshot = await this.db.ref('scores').once('value');
+      return snapshot.val() || {};
+    } catch (error) {
+      console.error('Erro ao buscar scores totais:', error);
+      return {};
+    }
+  }
+
+  // Calcula scores atuais baseado nos resultados processados
+  calculateCurrentScores(results) {
+    const scores = {};
+    
+    Object.values(results).forEach(roundData => {
+      if (roundData.result) {
+        const { player1, player2, player1Points, player2Points } = roundData.result;
+        scores[player1] = (scores[player1] || 0) + (player1Points || 0);
+        scores[player2] = (scores[player2] || 0) + (player2Points || 0);
+      }
+    });
+
+    return scores;
+  }
+
   // Reset completo do torneio - LIMPA FIREBASE INTEIRO
   async resetTournament() {
     console.log('🧹 Limpando Firebase inteiro...');

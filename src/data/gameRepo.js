@@ -41,6 +41,16 @@ class GameRepository {
     this.firebase.stopListening(gameKey);
   }
 
+  // Busca dados de um jogo específico
+  async getGameData(gameKey) {
+    return await this.firebase.getGameData(gameKey);
+  }
+
+  // Busca scores totais dos jogadores
+  async getTotalScores() {
+    return await this.firebase.getTotalScores();
+  }
+
   // Reset do torneio
   async resetAll() {
     await this.firebase.resetTournament();
