@@ -125,6 +125,15 @@ class GameScreen {
         <span>+${result.player2Points} pontos</span>
       </div>
     `;
+
+    // Atualiza bolinha da rodada atual com pontos do jogador
+    if (this.currentPlayer && this.gameState) {
+      const playerName = this.currentPlayer.getName();
+      const [p1, p2] = this.gameKey.split('-');
+      const playerPoints = playerName === p1 ? result.player1Points : result.player2Points;
+      
+      this.updateRoundDotWithPoints(this.gameState.currentRound, playerPoints);
+    }
   }
 
   showFinalState(scores) {
@@ -154,6 +163,37 @@ class GameScreen {
   // Atualiza indicador de rodada
   updateRoundIndicator(round) {
     document.getElementById('round-indicator').textContent = `Rodada ${round}/10`;
+    this.updateRoundDots(round);
+  }
+
+  // Atualiza bolinhas das rodadas com feedback visual
+  updateRoundDots(currentRound = 1) {
+    const container = document.getElementById('round-dots');
+    let html = '';
+    
+    for (let round = 1; round <= 10; round++) {
+      let dotClass = 'round-dot';
+      
+      if (round < currentRound) {
+        // Rodada já jogada - pegar resultado do referee/firebase
+        // Por enquanto, deixa cinza até implementarmos busca de resultados
+        dotClass += ' completed';
+      } else if (round === currentRound) {
+        dotClass += ' current';
+      }
+      
+      html += `<div class="${dotClass}" data-round="${round}"></div>`;
+    }
+    
+    container.innerHTML = html;
+  }
+
+  // Atualiza bolinha específica com pontos ganhos
+  updateRoundDotWithPoints(round, playerPoints) {
+    const dot = document.querySelector(`[data-round="${round}"]`);
+    if (dot) {
+      dot.className = `round-dot points-${playerPoints}`;
+    }
   }
 
   // Mostra tela

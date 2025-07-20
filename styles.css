@@ -161,12 +161,40 @@ h1 {
     height: 12px;
     border-radius: 50%;
     background: #ddd;
+    border: 2px solid #999;
+    transition: all 0.3s ease;
 }
 
-.round-dot.points-0 { background: #f44336; }
-.round-dot.points-1 { background: #ff9800; }
-.round-dot.points-3 { background: #2196f3; }
-.round-dot.points-5 { background: #4caf50; }
+/* Estados das bolinhas */
+.round-dot.current {
+    border-color: #2196f3;
+    box-shadow: 0 0 8px rgba(33, 150, 243, 0.5);
+}
+
+.round-dot.completed {
+    background: #999;
+}
+
+/* Cores por pontos ganhos */
+.round-dot.points-0 { 
+    background: #f44336; 
+    border-color: #d32f2f;
+}
+
+.round-dot.points-1 { 
+    background: #ff9800; 
+    border-color: #f57c00;
+}
+
+.round-dot.points-3 { 
+    background: #2196f3; 
+    border-color: #1976d2;
+}
+
+.round-dot.points-5 { 
+    background: #4caf50; 
+    border-color: #388e3c;
+}
 
 .game-state {
     margin-bottom: 20px;

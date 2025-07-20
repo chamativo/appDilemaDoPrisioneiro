@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.026',
-  description: 'Fix final scores and add Portuguese translations for choices'
+  number: 'v2024.027',
+  description: 'Add round indicators with visual feedback (colored dots for points)'
 };
 
 // Exibe versão no console
