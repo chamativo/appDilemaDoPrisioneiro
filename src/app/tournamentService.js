@@ -112,12 +112,18 @@ class TournamentService {
     const opponents = getOpponentsFor(playerName);
     const allGames = await this.getAllGamesForPlayer(playerName);
     
-    return {
+    console.log(`🏆 TOURNAMENT: Jogos encontrados para ${playerName}:`, allGames);
+    
+    const categorized = {
       pending: allGames.filter(game => game.status === 'pending'),
       active: allGames.filter(game => game.status === 'active'), 
       completed: allGames.filter(game => game.status === 'completed'),
       new: this.getNewGamesForPlayer(playerName, allGames)
     };
+    
+    console.log(`🏆 TOURNAMENT: Jogos categorizados:`, categorized);
+    
+    return categorized;
   }
 
   async getAllGamesForPlayer(playerName) {
@@ -132,6 +138,7 @@ class TournamentService {
       try {
         // Busca dados do jogo no Firebase
         const gameData = await this.gameRepo.getGameData(gameKey);
+        console.log(`🏆 TOURNAMENT: Dados do jogo ${gameKey}:`, gameData);
         
         if (gameData && gameData.status) {
           // Jogo existe no Firebase
@@ -143,6 +150,7 @@ class TournamentService {
             playerScore: gameData.scores?.[playerName] || 0,
             opponentScore: gameData.scores?.[opponent] || 0
           });
+          console.log(`🏆 TOURNAMENT: Jogo ${gameKey} adicionado com status '${gameData.status}'`);
         } else {
           // Jogo não existe - disponível para começar
           games.push({
@@ -153,6 +161,7 @@ class TournamentService {
             playerScore: 0,
             opponentScore: 0
           });
+          console.log(`🏆 TOURNAMENT: Jogo ${gameKey} adicionado como 'new' (não existe no Firebase)`);
         }
       } catch (error) {
         console.error(`🏆 TOURNAMENT: Erro ao buscar jogo ${gameKey}:`, error);
@@ -165,6 +174,7 @@ class TournamentService {
           playerScore: 0,
           opponentScore: 0
         });
+        console.log(`🏆 TOURNAMENT: Jogo ${gameKey} adicionado como 'new' (erro no Firebase)`);
       }
     }
     
