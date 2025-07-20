@@ -162,13 +162,6 @@ class GameScreen {
     });
   }
 
-  // Inicia nova rodada
-  startNewRound(round) {
-    this.gameState.currentRound = round;
-    this.showChoiceState();
-    this.updateRoundIndicator(round);
-    console.log(`📺 GameScreen: Iniciou nova rodada ${round}`);
-  }
 
   // Atualiza indicador de rodada
   updateRoundIndicator(round) {

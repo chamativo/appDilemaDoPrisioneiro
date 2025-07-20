@@ -61,13 +61,9 @@ class UIRouter {
       });
     });
 
-    // Comandos do Referee para atualizar tela durante o jogo
     eventBus.on('refereeRoundStarted', (data) => {
-      console.log('📺 uiRouter: Referee iniciou nova rodada', data.round);
-      const gameScreen = this.screens.get('game');
-      if (this.currentScreen === gameScreen) {
-        gameScreen.startNewRound(data.round);
-      }
+      console.log('📺 uiRouter: Referee iniciou rodada', data.round);
+      this.executeNextRound(data);
     });
   }
 
