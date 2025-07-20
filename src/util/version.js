@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.045',
-  description: 'Fix round advancement - Referee determines current round internally'
+  number: 'v2024.046',
+  description: 'Fix final game screen - Show final scores before TournamentService takeover'
 };
 
 // Exibe versão no console

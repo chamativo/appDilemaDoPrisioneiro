@@ -170,6 +170,13 @@ class Referee {
       const finalScores = this.calculateFinalScores(gameKey);
       console.log(`🏁 REFEREE: Pontos finais:`, finalScores);
       
+      // Primeiro mostra resultado final na UI
+      eventBus.emit('showGameComplete', {
+        gameKey,
+        scores: finalScores
+      });
+      
+      // Depois notifica TournamentService
       eventBus.emit('refereeGameComplete', { 
         gameKey, 
         finalScores 
