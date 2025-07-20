@@ -148,7 +148,8 @@ class Referee {
   }
 
   async handlePlayerContinued(data) {
-    const { player, gameKey, currentRound } = data;
+    const { player, gameKey } = data;
+    const currentRound = this.getCurrentRound(gameKey);
     console.log(`🏁 REFEREE: Player ${player} quer continuar da rodada ${currentRound}`);
 
     const stateKey = `${gameKey}-${currentRound}`;

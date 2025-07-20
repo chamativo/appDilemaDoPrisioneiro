@@ -72,8 +72,7 @@ class GameScreen {
     document.getElementById('next-round-btn').addEventListener('click', () => {
       eventBus.emit('advanceToNextRound', {
         player: this.currentPlayer?.getName(),
-        gameKey: this.gameKey,
-        currentRound: this.gameState.currentRound
+        gameKey: this.gameKey
       });
     });
 
