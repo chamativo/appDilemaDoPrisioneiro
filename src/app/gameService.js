@@ -44,11 +44,14 @@ class GameService {
 
   // Processa dados do jogo vindos do Firebase
   processGameData(gameKey, gameData) {
+    console.log('🎮 processGameData called:', gameKey, gameData);
     const { choices, results } = gameData;
     
     // Verifica rodadas que podem ser processadas
     if (choices) {
+      console.log('🎮 Choices found:', choices);
       Object.keys(choices).forEach(roundNum => {
+        console.log('🎮 Processing round:', roundNum, choices[roundNum]);
         this.checkAndProcessRound(gameKey, roundNum, choices[roundNum], results);
       });
     }
@@ -58,19 +61,32 @@ class GameService {
 
   // Verifica se rodada está completa e processa
   checkAndProcessRound(gameKey, roundNum, roundChoices, existingResults) {
+    console.log('🔍 checkAndProcessRound:', gameKey, roundNum, roundChoices, existingResults);
+    
     // Se já processada, skip
-    if (existingResults && existingResults[roundNum]) return;
+    if (existingResults && existingResults[roundNum]) {
+      console.log('🔍 Round already processed, skipping');
+      return;
+    }
 
     // Verifica se ambos jogadores escolheram
     const players = Object.keys(roundChoices);
-    if (players.length < 2) return;
+    console.log('🔍 Players who chose:', players);
+    if (players.length < 2) {
+      console.log('🔍 Not enough players, waiting...');
+      return;
+    }
 
     // Processa resultado
     const [p1, p2] = gameKey.split('-');
     const p1Choice = roundChoices[p1]?.choice;
     const p2Choice = roundChoices[p2]?.choice;
     
+    console.log('🔍 Choices:', { p1, p1Choice, p2, p2Choice });
+    
     if (p1Choice && p2Choice) {
+      console.log('🎯 Both players chose! Processing result...');
+      
       const roundData = {
         round: parseInt(roundNum),
         p1Choice,
@@ -81,6 +97,7 @@ class GameService {
       };
       
       const resolvedRound = resolveRound(roundData);
+      console.log('🎯 Round resolved:', resolvedRound);
       
       // Salva resultado
       this.gameRepo.processRoundResult(gameKey, roundNum, {
@@ -89,6 +106,10 @@ class GameService {
         player1Points: resolvedRound.p1Points,
         player2Points: resolvedRound.p2Points
       });
+      
+      console.log('🎯 Result saved to Firebase!');
+    } else {
+      console.log('🔍 Missing choices, waiting...');
     }
   }
 
