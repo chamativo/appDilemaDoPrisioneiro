@@ -63,9 +63,10 @@ class GameService {
   checkAndProcessRound(gameKey, roundNum, roundChoices, existingResults) {
     console.log('🏁 ÁRBITRO: Verificando rodada', gameKey, roundNum);
     
-    // Se já processada, skip
+    // Se já processada, verifica se deve avançar para próxima rodada
     if (existingResults && existingResults[roundNum]) {
-      console.log('🏁 ÁRBITRO: Rodada já processada');
+      console.log('🏁 ÁRBITRO: Rodada já processada, verificando se deve avançar...');
+      this.arbitrateNextStep(gameKey, parseInt(roundNum));
       return;
     }
 
