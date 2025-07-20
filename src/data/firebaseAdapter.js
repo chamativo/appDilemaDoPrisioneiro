@@ -107,12 +107,12 @@ class FirebaseAdapter {
 
       // Verifica quantas rodadas foram processadas
       const processedRounds = Object.keys(results).length;
-      const pendingRounds = Object.keys(choices).filter(round => !results[round]);
+      const unprocessedRounds = Object.keys(choices).filter(round => !results[round]);
 
-      if (pendingRounds.length > 0) {
+      if (unprocessedRounds.length > 0) {
         return {
-          status: 'pending',
-          currentRound: parseInt(pendingRounds[0]),
+          status: 'active',
+          currentRound: parseInt(unprocessedRounds[0]),
           scores: this.calculateCurrentScores(results)
         };
       }

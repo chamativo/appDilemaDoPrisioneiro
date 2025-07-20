@@ -107,7 +107,7 @@ class UIRouter {
     if (this.currentScreen === dashboardScreen) {
       console.log('📺 uiRouter: Atualizando dashboard com dados do Tournament');
       dashboardScreen.updateGamesList({
-        pending: data.pending,
+        active: data.active,
         new: data.new,
         completed: data.completed
       });

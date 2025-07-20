@@ -115,7 +115,6 @@ class TournamentService {
     console.log(`🏆 TOURNAMENT: Jogos encontrados para ${playerName}:`, allGames);
     
     const categorized = {
-      pending: allGames.filter(game => game.status === 'pending'),
       active: allGames.filter(game => game.status === 'active'), 
       completed: allGames.filter(game => game.status === 'completed'),
       new: this.getNewGamesForPlayer(playerName, allGames)

@@ -19,8 +19,8 @@ class DashboardScreen {
         </div>
         
         <div class="games-section">
-          <h3>Jogos Pendentes</h3>
-          <div id="pending-games" class="games-list">
+          <h3>Jogos em Andamento</h3>
+          <div id="active-games" class="games-list">
             <!-- Será preenchido dinamicamente -->
           </div>
         </div>
@@ -51,17 +51,15 @@ class DashboardScreen {
 
   // Atualiza lista de jogos
   updateGamesList(games) {
-    // Combina pending e active em "Jogos Pendentes"
-    const pendingAndActive = [...(games.pending || []), ...(games.active || [])];
-    this.updatePendingGames(pendingAndActive);
+    this.updateActiveGames(games.active || []);
     this.updateNewGames(games.new || []);
     this.updateCompletedGames(games.completed || []);
   }
 
-  updatePendingGames(games) {
-    const container = document.getElementById('pending-games');
+  updateActiveGames(games) {
+    const container = document.getElementById('active-games');
     if (games.length === 0) {
-      container.innerHTML = '<p>Nenhum jogo pendente.</p>';
+      container.innerHTML = '<p>Nenhum jogo em andamento.</p>';
       return;
     }
 
@@ -72,7 +70,7 @@ class DashboardScreen {
       </div>
     `).join('');
 
-    // Event listeners para jogos pendentes
+    // Event listeners para jogos em andamento
     container.querySelectorAll('.game-item').forEach(item => {
       item.addEventListener('click', () => {
         const gameKey = item.dataset.gameKey;

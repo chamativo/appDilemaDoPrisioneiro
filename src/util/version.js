@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.037',
-  description: 'Fix game categorization - round 11+ = completed, show active games'
+  number: 'v2024.038',
+  description: 'Remove pending status - only active/new/completed exist'
 };
 
 // Exibe versão no console
