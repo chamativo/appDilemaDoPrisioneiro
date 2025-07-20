@@ -244,12 +244,48 @@ class TournamentService {
 
   // ============ UTILITÁRIOS ============
 
-  // Calcula ranking geral
+  // Calcula ranking geral com pontos e jogos completos
   async calculateGeneralRanking() {
     try {
       console.log(`🏆 TOURNAMENT: Calculando ranking geral`);
-      const scores = await this.gameRepo.getTotalScores();
-      return calculateRanking(scores || {});
+      
+      const opponents = ['Arthur', 'Laura', 'Sergio', 'Larissa'];
+      const ranking = [];
+      
+      for (const player of opponents) {
+        let totalPoints = 0;
+        let completedGames = 0;
+        
+        // Para cada oponente, verifica jogos completos
+        for (const opponent of opponents) {
+          if (player === opponent) continue;
+          
+          const gameKey = createGameKey(player, opponent);
+          try {
+            const gameData = await this.gameRepo.getGameData(gameKey);
+            
+            if (gameData && gameData.status === 'completed' && gameData.scores) {
+              totalPoints += gameData.scores[player] || 0;
+              completedGames++;
+            }
+          } catch (error) {
+            console.log(`🏆 TOURNAMENT: Erro ao buscar jogo ${gameKey}:`, error);
+          }
+        }
+        
+        ranking.push({
+          name: player,
+          totalPoints,
+          completedGames
+        });
+      }
+      
+      // Ordena por pontos (maior → menor)
+      ranking.sort((a, b) => b.totalPoints - a.totalPoints);
+      
+      console.log(`🏆 TOURNAMENT: Ranking calculado:`, ranking);
+      return ranking;
+      
     } catch (error) {
       console.error('🏆 TOURNAMENT: Erro ao calcular ranking:', error);
       return [];

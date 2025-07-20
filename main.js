@@ -7,6 +7,7 @@ import uiRouter from './src/ui/uiRouter.js';
 import InitialScreen from './src/ui/screens/initialScreen.js';
 import DashboardScreen from './src/ui/screens/dashboardScreen.js';
 import GameScreen from './src/ui/screens/gameScreen.js';
+import RankingScreen from './src/ui/screens/rankingScreen.js';
 import logger from './src/util/logger.js';
 import { displayVersion } from './src/util/version.js';
 
@@ -43,6 +44,7 @@ class PrisonersDilemmaApp {
       uiRouter.registerScreen('initial', new InitialScreen());
       uiRouter.registerScreen('dashboard', new DashboardScreen());
       uiRouter.registerScreen('game', new GameScreen());
+      uiRouter.registerScreen('ranking', new RankingScreen());
       
       // Configura eventos
       this.setupEventListeners();
@@ -91,9 +93,9 @@ class PrisonersDilemmaApp {
     eventBus.on('showRanking', async () => {
       logger.info('Mostrando ranking...');
       const ranking = await this.tournamentService.calculateGeneralRanking();
-      // TODO: Mostrar modal de ranking via uiRouter
-      console.log('Ranking:', ranking);
+      uiRouter.navigateTo('ranking', { ranking });
     });
+
 
     // Erros
     eventBus.on('error', (data) => {

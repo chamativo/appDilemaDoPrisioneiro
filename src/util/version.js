@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.048',
-  description: 'Fix dashboard navigation and score persistence after game completion'
+  number: 'v2024.049',
+  description: 'Add general ranking screen with total points and completed games count'
 };
 
 // Exibe versão no console
