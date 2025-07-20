@@ -1,0 +1,319 @@
+ESPECIFICAÇÃO COMPLETA - DILEMA DO PRISIONEIRO - TORNEIO FAMILIAR
+Versão: v2024.013
+
+VISÃO GERAL
+Sistema web para torneio familiar do Dilema do Prisioneiro entre 4 jogadores fixos:
+
+Arthur
+
+Laura
+
+Sergio
+
+Larissa
+
+Cada jogador joga contra cada um dos outros (total de 6 jogos).
+Cada jogo tem 10 rodadas. Cada jogador joga de seu próprio dispositivo.
+Sincronização em tempo real via Firebase.
+
+TECNOLOGIAS
+Frontend: HTML + CSS + JavaScript (Vanilla)
+
+Backend: Firebase Realtime Database
+
+Deploy: Netlify (com GitHub)
+
+Versionamento: Git + GitHub
+
+PARES DE JOGOS
+Arthur vs Laura
+
+Arthur vs Sergio
+
+Arthur vs Larissa
+
+Laura vs Sergio
+
+Laura vs Larissa
+
+Sergio vs Larissa
+
+REGRAS DO DILEMA DO PRISIONEIRO
+Pontuação por rodada
+Ambos cooperam: 3 pontos cada
+
+Um coopera e outro trai: 0 pontos para o cooperador, 5 pontos para o traidor
+
+Ambos traem: 1 ponto cada
+
+Estrutura de jogo
+10 rodadas
+
+Jogador escolhe "Cooperar" ou "Trair"
+
+Pontos são acumulados
+
+Vencedor = quem tiver mais pontos no final das 10 rodadas
+
+FUNCIONALIDADES
+TELA INICIAL
+Letreiro: "Dilema do Prisioneiro"
+
+4 botões com nomes dos jogadores
+
+Botão "Zerar Torneio"
+
+Botão "Classificação Geral"
+
+Versão do sistema visível
+
+DASHBOARD DO JOGADOR
+Nome do jogador atual
+
+Botão "Trocar jogador"
+
+Jogos Pendentes (com indicador de rodada)
+
+Novos Jogos (com quem ainda não jogou)
+
+Histórico de jogos (placar e resultado visual: ✓ empate, vitória, derrota)
+
+TELA DE PARTIDA
+Cabeçalho: "Jogador vs Oponente"
+
+Rodada atual (ex: "Rodada 3/10")
+
+Indicadores visuais de rodadas
+
+Três estados:
+
+Escolha (botões "Cooperar" / "Trair")
+
+Aguardando oponente
+
+Resultado da rodada
+
+Resultado final
+
+SINCRONIZAÇÃO MULTI-DISPOSITIVO
+Firebase detecta escolha de ambos os jogadores
+
+Processa resultado automaticamente
+
+Sincroniza em tempo real com todos os dispositivos
+
+Nenhum refresh manual necessário
+
+ESTRUTURA DE DADOS NO FIREBASE
+js
+Copiar
+Editar
+/games/{gameKey}            // Dados de cada partida
+/scores/{playerId}          // Total acumulado de pontos por jogador
+/meta/version               // Versão do sistema atual
+gameKey
+Sempre ordenado alfabeticamente (ex: Arthur-Laura)
+
+Player1 = o nome que vem primeiro na ordem alfabética
+
+Exemplo de objetos gravados
+Escolha do jogador
+js
+Copiar
+Editar
+{
+  type: 'choice',
+  player: 'Arthur',
+  choice: 'cooperate',
+  round: 3,
+  gameKey: 'Arthur-Laura',
+  timestamp: 1705123456789
+}
+Resultado da rodada
+js
+Copiar
+Editar
+{
+  type: 'roundResult',
+  gameKey: 'Arthur-Laura',
+  round: 3,
+  result: {
+    player1Choice: 'cooperate',
+    player2Choice: 'defect',
+    player1Points: 0,
+    player2Points: 5
+  },
+  timestamp: 1705123456790
+}
+Jogo completo
+js
+Copiar
+Editar
+{
+  type: 'gameComplete',
+  gameKey: 'Arthur-Laura',
+  scores: {
+    Arthur: 15,
+    Laura: 28
+  },
+  timestamp: 1705123456791
+}
+RESET DO TORNEIO
+Botão "Zerar Torneio"
+
+Confirmação antes de apagar
+
+Remove todas as partidas, scores e dados de ranking
+
+EXPERIÊNCIA DO USUÁRIO
+Simples, clara, responsiva (mobile)
+
+Feedback visual de cada estado
+
+Rápida e sem travamentos
+
+Sem login ou instalação
+
+ARQUITETURA DE CÓDIGO E BOAS PRÁTICAS
+CAMADAS E RESPONSABILIDADES
+Camada	Pasta	Responsável por	Proibições
+domain/	Regra de negócio pura (pontuação, estados, regras)	Nunca acessar Firebase ou DOM	
+data/	Leitura/gravação no Firebase	Não pode acessar DOM	
+app/	Orquestração dos fluxos	Não renderiza nada	
+ui/	Componentes de interface	Nunca faz cálculos de lógica	
+util/	Helpers genéricos	Sem regras de negócio	
+
+ESTRUTURA DE PASTAS
+pgsql
+Copiar
+Editar
+/src/
+  domain/
+    scoring.js
+    gameState.js
+    tournament.js
+  data/
+    firebaseAdapter.js
+    gameRepo.js
+  app/
+    gameService.js
+    tournamentService.js
+    eventBus.js
+  ui/
+    screens/
+    components/
+    uiRouter.js
+  util/
+    logger.js
+    version.js
+/public/
+  index.html
+  styles.css
+  main.js
+CONTRATOS DE DADOS
+ts
+Copiar
+Editar
+type PlayerId = 'Arthur' | 'Laura' | 'Sergio' | 'Larissa';
+type Choice = 'cooperate' | 'defect';
+
+interface Round {
+  round: number;
+  p1Choice: Choice | null;
+  p2Choice: Choice | null;
+  p1Points: number | null;
+  p2Points: number | null;
+  resolved: boolean;
+}
+
+interface GameRecord {
+  gameKey: string;
+  p1: PlayerId;
+  p2: PlayerId;
+  rounds: Round[];
+  p1Total: number;
+  p2Total: number;
+  status: 'pending' | 'active' | 'complete';
+}
+MÁQUINA DE ESTADOS
+Cada rodada:
+
+Aguardar escolha do jogador
+
+Aguardar escolha do oponente
+
+Processar rodada
+
+Após rodada 10: marcar jogo como complete
+
+FUNÇÕES PURAS
+Toda regra de pontuação é implementada em funções puras, testadas e desacopladas de interface ou Firebase.
+
+js
+Copiar
+Editar
+export function scoreChoices(c1, c2) {
+  if (c1 === 'cooperate' && c2 === 'cooperate') return [3, 3];
+  if (c1 === 'cooperate' && c2 === 'defect') return [0, 5];
+  if (c1 === 'defect' && c2 === 'cooperate') return [5, 0];
+  return [1, 1];
+}
+SINCRONIZAÇÃO
+Firebase apenas grava escolhas e resultado
+
+Nenhum dado é mantido local
+
+UI responde a mudanças via escuta ativa
+
+REGRAS DE QUALIDADE DE CÓDIGO
+✅ Máximo 200 linhas por arquivo
+✅ Máximo 40 linhas por função
+✅ Sem acesso ao Firebase fora da camada data/
+✅ Sem acesso ao DOM fora da camada ui/
+✅ Cada módulo com responsabilidade única
+✅ Uso de eventBus.js para comunicar mudanças
+✅ logger.js para depuração (substitui console.log)
+✅ Testes unitários obrigatórios em test/ para camada domain/
+
+FLUXO DE EVENTOS
+UI chama submitChoice(player, gameKey, round, choice)
+
+AppService valida e delega ao gameRepo
+
+Firebase propaga mudança
+
+Listener (syncController) detecta rodada completa e processa resultado
+
+Resultado sincronizado com ambos jogadores
+
+UI mostra feedback visual
+
+CASOS DE USO TÍPICOS
+Cenário 1 - Início de novo jogo
+Jogador seleciona oponente
+
+Primeira escolha registrada
+
+Espera o outro jogador
+
+Cenário 2 - Retomar jogo pendente
+Jogador vê lista de pendentes
+
+Retoma da rodada onde parou
+
+Cenário 3 - Partida simultânea
+Ambos jogadores conectados
+
+Cada um escolhe em sua tela
+
+Resultado aparece para ambos
+
+CRITÉRIOS DE SUCESSO
+✅ Torneio completo entre 4 jogadores
+✅ Dados sincronizados entre dispositivos
+✅ Interface fluida e compreensível
+✅ Pontuação precisa e segura
+✅ Firebase como única fonte de verdade
+✅ Código modular, limpo, testável
+✅ Zero configuração para o usuário final
+✅ Deploy contínuo via GitHub + Netlify

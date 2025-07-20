@@ -4,7 +4,25 @@
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(python:*)",
-      "Bash(git merge:*)"
+      "Bash(git merge:*)",
+      "Bash(git remote add:*)",
+      "Bash(git push:*)",
+      "Bash(mkdir:*)",
+      "Bash(git checkout:*)",
+      "Bash(rm:*)",
+      "Bash(node:*)",
+      "Bash(move index.html old/)",
+      "Bash(move js old/)",
+      "Bash(move style.css old/)",
+      "Bash(move netlify.toml old/)",
+      "Bash(move CLAUDE.md old/)",
+      "Bash(mv:*)",
+      "Bash(git rm:*)",
+      "Bash(true)",
+      "Bash(npx serve:*)",
+      "Bash(ls:*)",
+      "Bash(git restore:*)",
+      "Bash(git revert:*)"
     ],
     "deny": []
   }

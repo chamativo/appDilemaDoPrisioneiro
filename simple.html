@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dilema do Prisioneiro - Teste</title>
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+</head>
+<body>
+    <div id="app">
+        <!-- Conteúdo será renderizado via JavaScript -->
+    </div>
+
+    <script>
+        console.log('Inicializando app simples...');
+        
+        // Renderizar tela inicial
+        function renderInitialScreen() {
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <div class="screen">
+                    <h1>Dilema do Prisioneiro</h1>
+                    
+                    <div class="player-buttons">
+                        <button class="player-btn" onclick="selectPlayer('Arthur')">Arthur</button>
+                        <button class="player-btn" onclick="selectPlayer('Laura')">Laura</button>
+                        <button class="player-btn" onclick="selectPlayer('Sergio')">Sergio</button>
+                        <button class="player-btn" onclick="selectPlayer('Larissa')">Larissa</button>
+                    </div>
+                    
+                    <div class="action-buttons">
+                        <button class="secondary-btn">Classificação Geral</button>
+                        <button class="reset-btn">Zerar Torneio</button>
+                    </div>
+                    
+                    <div class="version">v2024.013</div>
+                </div>
+            `;
+        }
+        
+        function selectPlayer(player) {
+            console.log('Jogador selecionado:', player);
+            alert('Jogador selecionado: ' + player);
+        }
+        
+        // Teste Firebase
+        function testFirebase() {
+            const firebaseConfig = {
+                apiKey: "AIzaSyBBpLIRLhSJbKFaB9EZgSoBzi976Mf44bA",
+                authDomain: "appdilemadoprisioneiro.firebaseapp.com",
+                databaseURL: "https://appdilemadoprisioneiro-default-rtdb.firebaseio.com",
+                projectId: "appdilemadoprisioneiro",
+                storageBucket: "appdilemadoprisioneiro.firebasestorage.app",
+                messagingSenderId: "35385722959",
+                appId: "1:35385722959:web:c9b650c0f7f939ed57823a"
+            };
+            
+            try {
+                firebase.initializeApp(firebaseConfig);
+                console.log('✅ Firebase conectado');
+                return firebase.database();
+            } catch (error) {
+                console.error('❌ Erro Firebase:', error);
+                return null;
+            }
+        }
+        
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM carregado, renderizando...');
+            renderInitialScreen();
+            testFirebase();
+        });
+    </script>
+</body>
+</html>
