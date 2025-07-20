@@ -85,15 +85,15 @@ class GameScreen {
 
   // Faz escolha
   makeChoice(choice) {
-    if (!this.gameState || !this.gameState.currentRound || !this.currentPlayer) return;
+    if (!this.gameKey || !this.currentPlayer) return;
 
     const playerName = this.currentPlayer.getName();
-    console.log('📺 UI: Fazendo escolha', { player: playerName, round: this.gameState.currentRound, choice });
+    console.log('📺 UI: Fazendo escolha', { player: playerName, gameKey: this.gameKey, choice });
 
+    // Referee que determina a rodada atual, não o GameScreen
     eventBus.emit('makeChoice', {
       player: playerName,
       gameKey: this.gameKey,
-      round: this.gameState.currentRound,
       choice
     });
 
@@ -165,7 +165,6 @@ class GameScreen {
 
   // Atualiza indicador de rodada
   updateRoundIndicator(round) {
-    this.gameState.currentRound = round; // Atualiza estado interno
     document.getElementById('round-indicator').textContent = `Rodada ${round}/10`;
     this.updateRoundDots(round);
   }

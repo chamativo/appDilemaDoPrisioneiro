@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.043',
-  description: 'Fix round state in GameScreen - move logic from uiRouter to updateRoundIndicator'
+  number: 'v2024.044',
+  description: 'Referee controls rounds - GameScreen sends choice without round number'
 };
 
 // Exibe versão no console
