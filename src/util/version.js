@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.025',
-  description: 'Fix result display: include player names in result data'
+  number: 'v2024.026',
+  description: 'Fix final scores and add Portuguese translations for choices'
 };
 
 // Exibe versão no console

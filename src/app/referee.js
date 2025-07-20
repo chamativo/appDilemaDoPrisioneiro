@@ -144,7 +144,15 @@ class Referee {
     
     if (isGameComplete(nextState)) {
       console.log(`🏁 REFEREE: Jogo ${gameKey} completo!`);
-      eventBus.emit('refereeGameComplete', { gameKey });
+      
+      // Calcula pontos finais
+      const finalScores = this.calculateFinalScores(gameKey);
+      console.log(`🏁 REFEREE: Pontos finais:`, finalScores);
+      
+      eventBus.emit('refereeGameComplete', { 
+        gameKey, 
+        finalScores 
+      });
     } else {
       // Cria próximo estado
       const nextStateKey = `${gameKey}-${nextState.round}`;
@@ -277,6 +285,32 @@ class Referee {
       }
     }
     keysToDelete.forEach(key => this.gameStates.delete(key));
+  }
+
+  // ============ CÁLCULOS ============
+
+  calculateFinalScores(gameKey) {
+    const [p1, p2] = gameKey.split('-');
+    let p1Total = 0;
+    let p2Total = 0;
+
+    // Soma pontos de todas as rodadas processadas
+    for (let round = 1; round <= 10; round++) {
+      const stateKey = `${gameKey}-${round}`;
+      const roundState = this.gameStates.get(stateKey);
+      
+      if (roundState && roundState.result) {
+        p1Total += roundState.result.player1Points || 0;
+        p2Total += roundState.result.player2Points || 0;
+      }
+    }
+
+    console.log(`🏁 REFEREE: Calculando pontos ${p1}=${p1Total}, ${p2}=${p2Total}`);
+    
+    return {
+      [p1]: p1Total,
+      [p2]: p2Total
+    };
   }
 
   // ============ API PÚBLICA ============

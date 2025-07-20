@@ -1,5 +1,6 @@
 // TELA DE PARTIDA conforme especificação
 import eventBus from '../../app/eventBus.js';
+import { translateChoice } from '../../util/translations.js';
 
 class GameScreen {
   constructor() {
@@ -116,11 +117,11 @@ class GameScreen {
     const details = document.getElementById('result-details');
     details.innerHTML = `
       <div class="result-row">
-        <span>${result.player1}: ${result.player1Choice}</span>
+        <span>${result.player1}: ${translateChoice(result.player1Choice)}</span>
         <span>+${result.player1Points} pontos</span>
       </div>
       <div class="result-row">
-        <span>${result.player2}: ${result.player2Choice}</span>
+        <span>${result.player2}: ${translateChoice(result.player2Choice)}</span>
         <span>+${result.player2Points} pontos</span>
       </div>
     `;

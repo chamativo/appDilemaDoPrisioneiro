@@ -195,7 +195,7 @@ class PrisonersDilemmaApp {
       if (this.currentPlayer) {
         this.currentPlayer.finishGame(data.gameKey);
       }
-      uiRouter.getCurrentScreen()?.showFinalState({});
+      uiRouter.getCurrentScreen()?.showFinalState(data.finalScores || {});
     });
 
     // Player voltou ao dashboard
