@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.027',
-  description: 'Add round indicators with visual feedback (colored dots for points)'
+  number: 'v2024.028',
+  description: 'Fix round indicators: all rounds now update correctly with points'
 };
 
 // Exibe versão no console

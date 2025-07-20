@@ -174,13 +174,10 @@ class GameScreen {
     for (let round = 1; round <= 10; round++) {
       let dotClass = 'round-dot';
       
-      if (round < currentRound) {
-        // Rodada já jogada - pegar resultado do referee/firebase
-        // Por enquanto, deixa cinza até implementarmos busca de resultados
-        dotClass += ' completed';
-      } else if (round === currentRound) {
+      if (round === currentRound) {
         dotClass += ' current';
       }
+      // Não marca como "completed" aqui - deixa isso para quando os pontos forem definidos
       
       html += `<div class="${dotClass}" data-round="${round}"></div>`;
     }
@@ -190,9 +187,13 @@ class GameScreen {
 
   // Atualiza bolinha específica com pontos ganhos
   updateRoundDotWithPoints(round, playerPoints) {
-    const dot = document.querySelector(`[data-round="${round}"]`);
+    const container = document.getElementById('round-dots');
+    const dot = container.querySelector(`[data-round="${round}"]`);
     if (dot) {
       dot.className = `round-dot points-${playerPoints}`;
+      console.log(`🎯 GameScreen: Atualizou bolinha rodada ${round} com ${playerPoints} pontos`);
+    } else {
+      console.error(`🎯 GameScreen: Bolinha da rodada ${round} não encontrada`);
     }
   }
 
