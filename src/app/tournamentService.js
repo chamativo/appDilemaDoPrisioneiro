@@ -6,7 +6,8 @@ import eventBus from './eventBus.js';
 class TournamentService {
   constructor() {
     this.gameRepo = new GameRepository();
-    this.currentPlayer = null;
+    this.currentPlayerName = null;
+    this.currentPlayerInstance = null;
     this.setupEventListeners();
   }
 
@@ -39,15 +40,26 @@ class TournamentService {
 
     // Jogador saiu - perde controle
     eventBus.on('changePlayer', () => {
-      this.currentPlayer = null;
+      this.currentPlayerName = null;
+      this.currentPlayerInstance = null;
     });
   }
 
   // ============ CONTROLADOR DO FLUXO ============
 
+  // Método chamado pelo main.js para definir o player atual
+  setCurrentPlayer(playerInstance) {
+    this.currentPlayerInstance = playerInstance;
+    this.currentPlayerName = playerInstance.getName();
+    
+    console.log(`🏆 TOURNAMENT: Assumindo controle para jogador ${this.currentPlayerName}`);
+    
+    // Dispara o fluxo do torneio
+    this.handlePlayerSelected(this.currentPlayerName);
+  }
+
   async handlePlayerSelected(playerName) {
-    console.log(`🏆 TOURNAMENT: Assumindo controle para jogador ${playerName}`);
-    this.currentPlayer = playerName;
+    console.log(`🏆 TOURNAMENT: Carregando dados do torneio para ${playerName}`);
     
     // Navega para dashboard
     eventBus.emit('tournamentNavigateToDashboard', { player: playerName });
@@ -63,15 +75,16 @@ class TournamentService {
   }
 
   async handleStartNewGame(data) {
-    console.log(`🏆 TOURNAMENT: Iniciando novo jogo ${this.currentPlayer} vs ${data.opponent}`);
+    console.log(`🏆 TOURNAMENT: Iniciando novo jogo ${this.currentPlayerName} vs ${data.opponent}`);
     
-    const gameKey = createGameKey(this.currentPlayer, data.opponent);
+    const gameKey = createGameKey(this.currentPlayerName, data.opponent);
     
     // Delega ao Referee
     eventBus.emit('tournamentDelegatesNewGame', {
       gameKey,
-      player: this.currentPlayer,
-      opponent: data.opponent
+      player: this.currentPlayerName,
+      opponent: data.opponent,
+      currentPlayer: this.currentPlayerInstance
     });
   }
 
@@ -81,8 +94,9 @@ class TournamentService {
     // Delega ao Referee
     eventBus.emit('tournamentDelegatesResumeGame', {
       gameKey: data.gameKey,
-      player: this.currentPlayer,
-      round: data.round || 1
+      player: this.currentPlayerName,
+      round: data.round || 1,
+      currentPlayer: this.currentPlayerInstance
     });
   }
 
@@ -93,12 +107,12 @@ class TournamentService {
     await this.updatePlayerScores(data.gameKey, data.finalScores);
     
     // Retoma controle após partida
-    if (this.currentPlayer) {
-      console.log(`🏆 TOURNAMENT: Retomando controle para ${this.currentPlayer}`);
-      const dashboardData = await this.loadPlayerDashboardData(this.currentPlayer);
+    if (this.currentPlayerName) {
+      console.log(`🏆 TOURNAMENT: Retomando controle para ${this.currentPlayerName}`);
+      const dashboardData = await this.loadPlayerDashboardData(this.currentPlayerName);
       
       eventBus.emit('tournamentDashboardReady', {
-        player: this.currentPlayer,
+        player: this.currentPlayerName,
         ...dashboardData
       });
     }

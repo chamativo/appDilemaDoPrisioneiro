@@ -47,6 +47,7 @@ class UIRouter {
       console.log('📺 uiRouter: Referee mandou navegar para jogo');
       this.navigateTo('game', {
         gameKey: data.gameKey,
+        currentPlayer: data.currentPlayer,
         currentRound: data.round
       });
     });
@@ -55,6 +56,7 @@ class UIRouter {
       console.log('📺 uiRouter: Referee mandou navegar para jogo retomado');
       this.navigateTo('game', {
         gameKey: data.gameKey,
+        currentPlayer: data.currentPlayer,
         currentRound: data.round
       });
     });

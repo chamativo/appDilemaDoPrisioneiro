@@ -216,7 +216,7 @@ class GameScreen {
   show(data) {
     this.gameKey = data.gameKey;
     this.currentPlayer = data.currentPlayer;
-    this.gameState = data.gameState || { currentRound: 1 };
+    this.gameState = data.gameState || { currentRound: data.currentRound || 1 };
     
     this.element = document.getElementById('app');
     this.element.innerHTML = this.render();

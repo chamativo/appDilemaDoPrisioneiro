@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.038',
-  description: 'Remove pending status - only active/new/completed exist'
+  number: 'v2024.039',
+  description: 'Fix Player instances flow - restore currentPlayer in GameScreen'
 };
 
 // Exibe versão no console

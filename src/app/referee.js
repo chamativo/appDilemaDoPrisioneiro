@@ -56,7 +56,7 @@ class Referee {
   // ============ HANDLERS DE EVENTOS ============
 
   async handleTournamentNewGame(data) {
-    const { gameKey, player, opponent } = data;
+    const { gameKey, player, opponent, currentPlayer } = data;
     console.log(`🏁 REFEREE: TournamentService delegou novo jogo ${gameKey} (${player} vs ${opponent})`);
     
     // Cria estado inicial da rodada 1
@@ -71,12 +71,13 @@ class Referee {
     eventBus.emit('refereeGameStarted', {
       gameKey,
       round: 1,
-      state: GAME_STATES.WAITING_CHOICES
+      state: GAME_STATES.WAITING_CHOICES,
+      currentPlayer: currentPlayer
     });
   }
 
   async handleTournamentResumeGame(data) {
-    const { gameKey, player, round } = data;
+    const { gameKey, player, round, currentPlayer } = data;
     console.log(`🏁 REFEREE: TournamentService delegou retomar jogo ${gameKey} rodada ${round}`);
     
     // TODO: Recuperar estado do Firebase se necessário
@@ -91,7 +92,8 @@ class Referee {
     eventBus.emit('refereeGameResumed', {
       gameKey,
       round,
-      state: this.gameStates.get(stateKey).state
+      state: this.gameStates.get(stateKey).state,
+      currentPlayer: currentPlayer
     });
   }
 
@@ -102,12 +104,12 @@ class Referee {
   }
 
   async handlePlayerChoice(data) {
-    const { choice, gameKey, round } = data;
-    console.log(`🏁 REFEREE: Player escolheu ${choice} na rodada ${round || 'atual'}`);
+    const { player, choice, gameKey, round } = data;
+    console.log(`🏁 REFEREE: Player ${player} escolheu ${choice} na rodada ${round || 'atual'}`);
 
     // Se não temos gameKey/round, precisa pegar do estado atual
-    if (!gameKey) {
-      console.error('🏁 REFEREE: gameKey não fornecido na escolha');
+    if (!gameKey || !player) {
+      console.error('🏁 REFEREE: gameKey ou player não fornecido na escolha');
       return;
     }
 
@@ -120,10 +122,9 @@ class Referee {
       roundState = createRoundState(currentRound);
     }
 
-    // Determina qual jogador fez a escolha baseado no contexto
-    // TODO: Melhorar detecção do jogador atual
+    // Determina qual jogador fez a escolha
     const [p1, p2] = gameKey.split('-');
-    const playerIndex = 'p1'; // Temporário - precisa vir do contexto
+    const playerIndex = player === p1 ? 'p1' : 'p2';
     
     // Verifica se pode aceitar escolha
     if (!canAcceptChoice(roundState, playerIndex)) {
@@ -136,7 +137,7 @@ class Referee {
     this.gameStates.set(stateKey, roundState);
 
     // Salva no Firebase
-    await this.gameRepo.submitChoice(p1, gameKey, currentRound, choice);
+    await this.gameRepo.submitChoice(player, gameKey, currentRound, choice);
 
     // Se ambos escolheram, processa resultado
     if (roundState.state === GAME_STATES.SHOWING_RESULT) {

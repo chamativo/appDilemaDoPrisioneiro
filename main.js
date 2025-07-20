@@ -1,6 +1,7 @@
 // Main entry point - apenas escolha de jogador, reset e classificação
 import Referee from './src/app/referee.js';
 import TournamentService from './src/app/tournamentService.js';
+import { Player } from './src/domain/player.js';
 import eventBus from './src/app/eventBus.js';
 import uiRouter from './src/ui/uiRouter.js';
 import InitialScreen from './src/ui/screens/initialScreen.js';
@@ -13,6 +14,7 @@ class PrisonersDilemmaApp {
   constructor() {
     this.referee = new Referee();
     this.tournamentService = new TournamentService();
+    this.players = new Map(); // Cache de Players
   }
 
   async initialize() {
@@ -58,10 +60,19 @@ class PrisonersDilemmaApp {
   }
 
   setupEventListeners() {
-    // Seleção de jogador - passa controle para TournamentService
+    // Seleção de jogador - cria Player e passa para TournamentService
     eventBus.on('playerSelected', (data) => {
       logger.info('Jogador selecionado:', data.player);
-      // TournamentService assume controle
+      
+      // Cria ou recupera Player
+      if (!this.players.has(data.player)) {
+        this.players.set(data.player, new Player(data.player));
+      }
+      
+      const playerInstance = this.players.get(data.player);
+      
+      // Informa TournamentService sobre o player selecionado
+      this.tournamentService.setCurrentPlayer(playerInstance);
     });
 
     // Mudança de jogador - volta para tela inicial
