@@ -149,10 +149,12 @@ class Referee {
 
   async handlePlayerContinued(data) {
     const { player, gameKey } = data;
-    const currentRound = this.getCurrentRound(gameKey);
-    console.log(`🏁 REFEREE: Player ${player} quer continuar da rodada ${currentRound}`);
+    
+    // Busca a última rodada que teve resultado (não a próxima rodada)
+    const lastCompletedRound = this.getLastCompletedRound(gameKey);
+    console.log(`🏁 REFEREE: Player ${player} quer continuar da rodada ${lastCompletedRound}`);
 
-    const stateKey = `${gameKey}-${currentRound}`;
+    const stateKey = `${gameKey}-${lastCompletedRound}`;
     const currentState = this.gameStates.get(stateKey);
 
     if (!currentState || currentState.state !== GAME_STATES.SHOWING_RESULT) {
@@ -353,6 +355,18 @@ class Referee {
     for (let round = 10; round >= 1; round--) {
       const stateKey = `${gameKey}-${round}`;
       if (this.gameStates.has(stateKey)) {
+        return round;
+      }
+    }
+    return 1; // Default para rodada 1
+  }
+
+  getLastCompletedRound(gameKey) {
+    // Busca a última rodada com resultado (SHOWING_RESULT)
+    for (let round = 10; round >= 1; round--) {
+      const stateKey = `${gameKey}-${round}`;
+      const state = this.gameStates.get(stateKey);
+      if (state && state.state === GAME_STATES.SHOWING_RESULT) {
         return round;
       }
     }

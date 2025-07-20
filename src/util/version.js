@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.046',
-  description: 'Fix final game screen - Show final scores before TournamentService takeover'
+  number: 'v2024.047',
+  description: 'Fix round continuation logic - Use last completed round instead of current round'
 };
 
 // Exibe versão no console
