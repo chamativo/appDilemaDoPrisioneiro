@@ -213,9 +213,55 @@ class Referee {
       const gameData = snapshot.val();
       if (!gameData) return;
 
-      // Apenas sincroniza - não processa automaticamente
+      console.log(`🏁 REFEREE: Firebase sync para ${gameKey}:`, gameData);
+      
+      // Processa dados do Firebase para sincronizar estado entre abas
+      this.syncGameStateFromFirebase(gameKey, gameData);
+      
       eventBus.emit('refereeGameSync', { gameKey, gameData });
     });
+  }
+
+  // Sincroniza estado local com dados do Firebase
+  syncGameStateFromFirebase(gameKey, gameData) {
+    const { choices, results } = gameData;
+    
+    if (choices) {
+      // Para cada rodada com escolhas
+      Object.keys(choices).forEach(round => {
+        const roundChoices = choices[round];
+        const stateKey = `${gameKey}-${round}`;
+        
+        console.log(`🏁 REFEREE: Sincronizando rodada ${round}:`, roundChoices);
+        
+        // Se já processada, skip
+        if (results && results[round]) {
+          console.log(`🏁 REFEREE: Rodada ${round} já processada`);
+          return;
+        }
+        
+        // Reconstrói estado baseado no Firebase
+        let roundState = this.gameStates.get(stateKey) || createRoundState(parseInt(round));
+        
+        // Aplica escolhas do Firebase
+        const [p1, p2] = gameKey.split('-');
+        if (roundChoices[p1]) {
+          roundState = applyPlayerChoice(roundState, 'p1', roundChoices[p1].choice);
+        }
+        if (roundChoices[p2]) {
+          roundState = applyPlayerChoice(roundState, 'p2', roundChoices[p2].choice);
+        }
+        
+        this.gameStates.set(stateKey, roundState);
+        console.log(`🏁 REFEREE: Estado sincronizado:`, roundState);
+        
+        // Se ambos escolheram E ainda não processamos, processa agora
+        if (roundState.state === GAME_STATES.SHOWING_RESULT && !roundState.result) {
+          console.log(`🏁 REFEREE: Detectou ambas escolhas - processando resultado`);
+          this.processRoundResult(gameKey, parseInt(round), roundState);
+        }
+      });
+    }
   }
 
   stopListening(gameKey) {

@@ -81,7 +81,7 @@ class UIRouter {
     // Mostra tela primeiro
     screen.show(data);
     
-    // Busca jogos do jogador
+    // Busca jogos do jogador (agora recebe instância Player)
     const games = await this.getGamesByPlayer(data.player);
     console.log('Jogos encontrados:', games);
     
@@ -121,11 +121,16 @@ class UIRouter {
     }
   }
 
-  // Busca jogos por jogador (lógica temporária)
-  async getGamesByPlayer(player) {
+  // Busca jogos por jogador usando instância Player
+  async getGamesByPlayer(playerInstance) {
     try {
-      const players = ['Arthur', 'Laura', 'Sergio', 'Larissa'];
-      const opponents = players.filter(p => p !== player);
+      if (!playerInstance || !playerInstance.getOpponents) {
+        console.error('Player inválido:', playerInstance);
+        return { pending: [], new: [], completed: [] };
+      }
+      
+      const opponents = playerInstance.getOpponents();
+      const playerName = playerInstance.getName();
       
       // Por enquanto, gera jogos fictícios
       // TODO: Implementar busca real no Firebase
@@ -135,7 +140,7 @@ class UIRouter {
         ],
         new: opponents.map(opponent => ({
           opponent,
-          gameKey: this.createGameKey(player, opponent)
+          gameKey: this.createGameKey(playerName, opponent)
         })),
         completed: [
           // Exemplo: { opponent: 'Sergio', playerScore: 25, opponentScore: 18, result: 'victory' }

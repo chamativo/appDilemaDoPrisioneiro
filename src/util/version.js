@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.023',
-  description: 'Implement Player + Referee architecture: clean separation of concerns'
+  number: 'v2024.024',
+  description: 'Fix cross-tab synchronization: Referee now syncs state from Firebase'
 };
 
 // Exibe versão no console
