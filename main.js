@@ -36,6 +36,9 @@ class PrisonersDilemmaApp {
       await this.gameService.connect(firebaseConfig);
       await this.tournamentService.connect(firebaseConfig);
       
+      // Injeta services no uiRouter
+      uiRouter.setServices(this.gameService, this.tournamentService);
+      
       // Registra telas
       uiRouter.registerScreen('initial', new InitialScreen());
       uiRouter.registerScreen('dashboard', new DashboardScreen());
