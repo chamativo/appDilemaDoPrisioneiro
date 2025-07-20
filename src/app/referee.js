@@ -27,32 +27,37 @@ class Referee {
   // ============ EVENT LISTENERS ============
   
   setupEventListeners() {
-    // Player iniciou jogo
-    eventBus.on('playerStartedGame', (data) => {
-      this.handlePlayerStartedGame(data);
+    // TournamentService delega novos jogos
+    eventBus.on('tournamentDelegatesNewGame', (data) => {
+      this.handleTournamentNewGame(data);
     });
 
-    // Player retomou jogo
-    eventBus.on('playerResumedGame', (data) => {
-      this.handlePlayerResumedGame(data);
+    // TournamentService delega jogos para retomar
+    eventBus.on('tournamentDelegatesResumeGame', (data) => {
+      this.handleTournamentResumeGame(data);
     });
 
     // Player fez escolha
-    eventBus.on('playerMadeChoice', (data) => {
+    eventBus.on('makeChoice', (data) => {
       this.handlePlayerChoice(data);
     });
 
-    // Player quer continuar
-    eventBus.on('playerContinued', (data) => {
+    // Player quer continuar para próxima rodada
+    eventBus.on('advanceToNextRound', (data) => {
       this.handlePlayerContinued(data);
+    });
+
+    // Player voltou ao dashboard
+    eventBus.on('backToDashboard', (data) => {
+      this.handlePlayerBackToDashboard(data);
     });
   }
 
   // ============ HANDLERS DE EVENTOS ============
 
-  async handlePlayerStartedGame(data) {
-    const { player, gameKey } = data;
-    console.log(`🏁 REFEREE: Player ${player} iniciou jogo ${gameKey}`);
+  async handleTournamentNewGame(data) {
+    const { gameKey, player, opponent } = data;
+    console.log(`🏁 REFEREE: TournamentService delegou novo jogo ${gameKey} (${player} vs ${opponent})`);
     
     // Cria estado inicial da rodada 1
     const stateKey = `${gameKey}-1`;
@@ -70,9 +75,9 @@ class Referee {
     });
   }
 
-  async handlePlayerResumedGame(data) {
-    const { player, gameKey, round } = data;
-    console.log(`🏁 REFEREE: Player ${player} retomou jogo ${gameKey} rodada ${round}`);
+  async handleTournamentResumeGame(data) {
+    const { gameKey, player, round } = data;
+    console.log(`🏁 REFEREE: TournamentService delegou retomar jogo ${gameKey} rodada ${round}`);
     
     // TODO: Recuperar estado do Firebase se necessário
     const stateKey = `${gameKey}-${round}`;
@@ -90,22 +95,36 @@ class Referee {
     });
   }
 
-  async handlePlayerChoice(data) {
-    const { player, gameKey, round, choice } = data;
-    console.log(`🏁 REFEREE: Player ${player} escolheu ${choice} na rodada ${round}`);
+  async handlePlayerBackToDashboard(data) {
+    console.log(`🏁 REFEREE: Player voltou ao dashboard`);
+    // Para todos os listeners ativos
+    // TODO: Implementar limpeza de listeners
+  }
 
-    const stateKey = `${gameKey}-${round}`;
+  async handlePlayerChoice(data) {
+    const { choice, gameKey, round } = data;
+    console.log(`🏁 REFEREE: Player escolheu ${choice} na rodada ${round || 'atual'}`);
+
+    // Se não temos gameKey/round, precisa pegar do estado atual
+    if (!gameKey) {
+      console.error('🏁 REFEREE: gameKey não fornecido na escolha');
+      return;
+    }
+
+    const currentRound = round || this.getCurrentRound(gameKey);
+    const stateKey = `${gameKey}-${currentRound}`;
     let roundState = this.gameStates.get(stateKey);
     
     if (!roundState) {
-      console.log(`🏁 REFEREE: Criando estado para rodada ${round}`);
-      roundState = createRoundState(round);
+      console.log(`🏁 REFEREE: Criando estado para rodada ${currentRound}`);
+      roundState = createRoundState(currentRound);
     }
 
-    // Determina índice do jogador
+    // Determina qual jogador fez a escolha baseado no contexto
+    // TODO: Melhorar detecção do jogador atual
     const [p1, p2] = gameKey.split('-');
-    const playerIndex = player === p1 ? 'p1' : 'p2';
-
+    const playerIndex = 'p1'; // Temporário - precisa vir do contexto
+    
     // Verifica se pode aceitar escolha
     if (!canAcceptChoice(roundState, playerIndex)) {
       console.log(`🏁 REFEREE: Escolha rejeitada - estado inválido`);
@@ -117,11 +136,11 @@ class Referee {
     this.gameStates.set(stateKey, roundState);
 
     // Salva no Firebase
-    await this.gameRepo.submitChoice(player, gameKey, round, choice);
+    await this.gameRepo.submitChoice(p1, gameKey, currentRound, choice);
 
     // Se ambos escolheram, processa resultado
     if (roundState.state === GAME_STATES.SHOWING_RESULT) {
-      await this.processRoundResult(gameKey, round, roundState);
+      await this.processRoundResult(gameKey, currentRound, roundState);
     }
 
     console.log(`🏁 REFEREE: Estado atualizado:`, roundState);
@@ -318,6 +337,17 @@ class Referee {
   getGameState(gameKey, round) {
     const stateKey = `${gameKey}-${round}`;
     return this.gameStates.get(stateKey);
+  }
+
+  getCurrentRound(gameKey) {
+    // Busca a última rodada ativa para este jogo
+    for (let round = 10; round >= 1; round--) {
+      const stateKey = `${gameKey}-${round}`;
+      if (this.gameStates.has(stateKey)) {
+        return round;
+      }
+    }
+    return 1; // Default para rodada 1
   }
 }
 

@@ -23,6 +23,15 @@ class TournamentService {
       this.handlePlayerSelected(data.player);
     });
 
+    // Escuta eventos do dashboard
+    eventBus.on('startNewGame', (data) => {
+      this.handleStartNewGame(data);
+    });
+
+    eventBus.on('resumeGame', (data) => {
+      this.handleResumeGame(data);
+    });
+
     // Recebe notificação quando jogo é finalizado pelo Referee
     eventBus.on('refereeGameComplete', (data) => {
       this.handleGameCompleted(data);
@@ -40,6 +49,9 @@ class TournamentService {
     console.log(`🏆 TOURNAMENT: Assumindo controle para jogador ${playerName}`);
     this.currentPlayer = playerName;
     
+    // Navega para dashboard
+    eventBus.emit('tournamentNavigateToDashboard', { player: playerName });
+    
     // Carrega dados do torneio para este jogador
     const dashboardData = await this.loadPlayerDashboardData(playerName);
     
@@ -47,6 +59,30 @@ class TournamentService {
     eventBus.emit('tournamentDashboardReady', {
       player: playerName,
       ...dashboardData
+    });
+  }
+
+  async handleStartNewGame(data) {
+    console.log(`🏆 TOURNAMENT: Iniciando novo jogo ${this.currentPlayer} vs ${data.opponent}`);
+    
+    const gameKey = createGameKey(this.currentPlayer, data.opponent);
+    
+    // Delega ao Referee
+    eventBus.emit('tournamentDelegatesNewGame', {
+      gameKey,
+      player: this.currentPlayer,
+      opponent: data.opponent
+    });
+  }
+
+  async handleResumeGame(data) {
+    console.log(`🏆 TOURNAMENT: Retomando jogo ${data.gameKey} na rodada ${data.round || 1}`);
+    
+    // Delega ao Referee
+    eventBus.emit('tournamentDelegatesResumeGame', {
+      gameKey: data.gameKey,
+      player: this.currentPlayer,
+      round: data.round || 1
     });
   }
 
@@ -85,52 +121,65 @@ class TournamentService {
   }
 
   async getAllGamesForPlayer(playerName) {
-    // TODO: Implementar busca real no Firebase
+    console.log(`🏆 TOURNAMENT: Buscando jogos para ${playerName} no Firebase`);
+    
     const opponents = getOpponentsFor(playerName);
     const games = [];
     
     for (const opponent of opponents) {
       const gameKey = createGameKey(playerName, opponent);
       
-      // TODO: Buscar estado real do Firebase
-      games.push({
-        gameKey,
-        opponent,
-        status: 'new', // Temporário até implementar busca real
-        currentRound: 1,
-        playerScore: 0,
-        opponentScore: 0
-      });
+      try {
+        // Busca dados do jogo no Firebase
+        const gameData = await this.gameRepo.getGameData(gameKey);
+        
+        if (gameData && gameData.status) {
+          // Jogo existe no Firebase
+          games.push({
+            gameKey,
+            opponent,
+            status: gameData.status,
+            currentRound: gameData.currentRound || 1,
+            playerScore: gameData.scores?.[playerName] || 0,
+            opponentScore: gameData.scores?.[opponent] || 0
+          });
+        } else {
+          // Jogo não existe - disponível para começar
+          games.push({
+            gameKey,
+            opponent,
+            status: 'new',
+            currentRound: 1,
+            playerScore: 0,
+            opponentScore: 0
+          });
+        }
+      } catch (error) {
+        console.error(`🏆 TOURNAMENT: Erro ao buscar jogo ${gameKey}:`, error);
+        // Em caso de erro, assume como novo
+        games.push({
+          gameKey,
+          opponent,
+          status: 'new',
+          currentRound: 1,
+          playerScore: 0,
+          opponentScore: 0
+        });
+      }
     }
     
+    console.log(`🏆 TOURNAMENT: Encontrados ${games.length} jogos para ${playerName}`);
     return games;
   }
 
   getNewGamesForPlayer(playerName, existingGames) {
-    const opponents = getOpponentsFor(playerName);
-    const existingOpponents = existingGames.map(game => game.opponent);
-    
-    return opponents
-      .filter(opponent => !existingOpponents.includes(opponent))
-      .map(opponent => ({
-        opponent,
-        gameKey: createGameKey(playerName, opponent)
-      }));
+    // Filtra apenas jogos com status 'new'
+    return existingGames.filter(game => game.status === 'new');
   }
 
   // ============ DELEGAÇÃO AO REFEREE ============
-
-  // TournamentService delega partida ao Referee
-  delegateGameToReferee(gameKey, player, opponent) {
-    console.log(`🏆 TOURNAMENT: Delegando jogo ${gameKey} ao Referee`);
-    
-    // Referee assume controle da partida
-    eventBus.emit('tournamentDelegatesGame', {
-      gameKey,
-      player,
-      opponent
-    });
-  }
+  
+  // Os eventos de delegação já são emitidos nos handlers acima
 
   // ============ GESTÃO DE SCORES ============
 
@@ -152,9 +201,14 @@ class TournamentService {
 
   // Calcula ranking geral
   async calculateGeneralRanking() {
-    // TODO: Buscar scores do Firebase
-    const scores = {}; // Temporário
-    return calculateRanking(scores);
+    try {
+      console.log(`🏆 TOURNAMENT: Calculando ranking geral`);
+      const scores = await this.gameRepo.getTotalScores();
+      return calculateRanking(scores || {});
+    } catch (error) {
+      console.error('🏆 TOURNAMENT: Erro ao calcular ranking:', error);
+      return [];
+    }
   }
 
   // Reset completo do torneio

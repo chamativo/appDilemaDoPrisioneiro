@@ -32,9 +32,31 @@ class UIRouter {
     });
 
     // Comandos do TournamentService
+    eventBus.on('tournamentNavigateToDashboard', (data) => {
+      console.log('📺 uiRouter: TournamentService mandou navegar para dashboard');
+      this.navigateTo('dashboard', data);
+    });
+
     eventBus.on('tournamentDashboardReady', (data) => {
       console.log('📺 uiRouter: TournamentService forneceu dados do dashboard');
       this.executeDashboardUpdate(data);
+    });
+
+    // Comandos do Referee para navegação
+    eventBus.on('refereeGameStarted', (data) => {
+      console.log('📺 uiRouter: Referee mandou navegar para jogo');
+      this.navigateTo('game', {
+        gameKey: data.gameKey,
+        currentRound: data.round
+      });
+    });
+
+    eventBus.on('refereeGameResumed', (data) => {
+      console.log('📺 uiRouter: Referee mandou navegar para jogo retomado');
+      this.navigateTo('game', {
+        gameKey: data.gameKey,
+        currentRound: data.round
+      });
     });
   }
 
@@ -49,9 +71,11 @@ class UIRouter {
     this.screens.set(name, screenInstance);
   }
 
-  // Navega para uma tela - ORQUESTRA carregamento de dados
+  // Navega para uma tela - APENAS EXECUTA
   async navigateTo(screenName, data = {}) {
     try {
+      console.log(`📺 uiRouter: Navegando para ${screenName}`);
+      
       // Esconde tela atual
       if (this.currentScreen) {
         this.currentScreen.hide();
@@ -64,30 +88,17 @@ class UIRouter {
         return;
       }
 
-      // ORQUESTRAÇÃO: carrega dados específicos para cada tela
-      if (screenName === 'dashboard') {
-        await this.loadDashboardData(screen, data);
-      } else if (screenName === 'game') {
-        await this.loadGameData(screen, data);
-      } else {
-        // Telas simples sem dados
-        screen.show(data);
-      }
-
+      // Simplesmente mostra a tela com os dados fornecidos
+      screen.show(data);
       this.currentScreen = screen;
+      
+      if (screenName === 'game') {
+        this.currentGameKey = data.gameKey;
+      }
+      
     } catch (error) {
       console.error('Erro na navegação:', error);
     }
-  }
-
-  // Orquestra carregamento do dashboard
-  async loadDashboardData(screen, data) {
-    console.log('📺 uiRouter: Carregando dashboard, TournamentService assumirá controle');
-    
-    // Mostra tela primeiro
-    screen.show(data);
-    
-    // TournamentService fornecerá os dados via evento 'tournamentDashboardReady'
   }
 
   // Executa atualização do dashboard com dados do TournamentService  
@@ -101,15 +112,6 @@ class UIRouter {
         completed: data.completed
       });
     }
-  }
-
-  // Orquestra carregamento da tela de jogo
-  async loadGameData(screen, data) {
-    console.log('Carregando dados do jogo:', data.gameKey);
-    this.currentGameKey = data.gameKey;
-    
-    // TODO: Buscar estado atual do jogo
-    screen.show(data);
   }
 
   // COMANDOS EXECUTADOS - NÃO DECIDE, APENAS EXECUTA
@@ -135,41 +137,6 @@ class UIRouter {
     }
   }
 
-  // Busca jogos por jogador usando instância Player
-  async getGamesByPlayer(playerInstance) {
-    try {
-      if (!playerInstance || !playerInstance.getOpponents) {
-        console.error('Player inválido:', playerInstance);
-        return { pending: [], new: [], completed: [] };
-      }
-      
-      const opponents = playerInstance.getOpponents();
-      const playerName = playerInstance.getName();
-      
-      // Por enquanto, gera jogos fictícios
-      // TODO: Implementar busca real no Firebase
-      return {
-        pending: [
-          // Exemplo: { opponent: 'Laura', gameKey: 'Arthur-Laura', round: 3 }
-        ],
-        new: opponents.map(opponent => ({
-          opponent,
-          gameKey: this.createGameKey(playerName, opponent)
-        })),
-        completed: [
-          // Exemplo: { opponent: 'Sergio', playerScore: 25, opponentScore: 18, result: 'victory' }
-        ]
-      };
-    } catch (error) {
-      console.error('Erro ao buscar jogos:', error);
-      return { pending: [], new: [], completed: [] };
-    }
-  }
-
-  // Utilitário para criar gameKey
-  createGameKey(player1, player2) {
-    return [player1, player2].sort().join('-');
-  }
 
   // Obtém tela atual
   getCurrentScreen() {

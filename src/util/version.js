@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.033',
-  description: 'Implement TournamentService as main tournament flow controller'
+  number: 'v2024.034',
+  description: 'Complete tournament architecture migration - TournamentService controls flow'
 };
 
 // Exibe versão no console
