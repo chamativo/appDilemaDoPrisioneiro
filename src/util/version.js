@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.029',
-  description: 'Fix UI to get round from Player (authority) not internal gameState'
+  number: 'v2024.028',
+  description: 'Fix round indicators: all rounds now update correctly with points'
 };
 
 // Exibe versão no console

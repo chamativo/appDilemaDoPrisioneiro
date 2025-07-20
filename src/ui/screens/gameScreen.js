@@ -70,10 +70,9 @@ class GameScreen {
 
     // Botão próxima rodada - chama máquina de estados
     document.getElementById('next-round-btn').addEventListener('click', () => {
-      const currentRound = this.currentPlayer?.getCurrentRound() || 1;
       eventBus.emit('advanceToNextRound', {
         gameKey: this.gameKey,
-        currentRound: currentRound // CORRETO: pega do Player
+        currentRound: this.gameState.currentRound
       });
     });
 
@@ -85,17 +84,15 @@ class GameScreen {
 
   // Faz escolha
   makeChoice(choice) {
-    if (!this.currentPlayer) return;
+    if (!this.gameState || !this.gameState.currentRound || !this.currentPlayer) return;
 
     const playerName = this.currentPlayer.getName();
-    const currentRound = this.currentPlayer.getCurrentRound(); // CORRETO: pega do Player
-    
-    console.log('📺 UI: Fazendo escolha', { player: playerName, round: currentRound, choice });
+    console.log('📺 UI: Fazendo escolha', { player: playerName, round: this.gameState.currentRound, choice });
 
     eventBus.emit('makeChoice', {
       player: playerName,
       gameKey: this.gameKey,
-      round: currentRound,
+      round: this.gameState.currentRound,
       choice
     });
 
@@ -130,13 +127,12 @@ class GameScreen {
     `;
 
     // Atualiza bolinha da rodada atual com pontos do jogador
-    if (this.currentPlayer) {
+    if (this.currentPlayer && this.gameState) {
       const playerName = this.currentPlayer.getName();
-      const currentRound = this.currentPlayer.getCurrentRound(); // CORRETO: pega do Player
       const [p1, p2] = this.gameKey.split('-');
       const playerPoints = playerName === p1 ? result.player1Points : result.player2Points;
       
-      this.updateRoundDotWithPoints(currentRound, playerPoints);
+      this.updateRoundDotWithPoints(this.gameState.currentRound, playerPoints);
     }
   }
 
