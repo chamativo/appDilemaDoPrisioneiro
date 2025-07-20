@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.039',
-  description: 'Fix Player instances flow - restore currentPlayer in GameScreen'
+  number: 'v2024.040',
+  description: 'Fix round advancement - add player to events and uiRouter listener'
 };
 
 // Exibe versão no console

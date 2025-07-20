@@ -71,6 +71,7 @@ class GameScreen {
     // Botão próxima rodada - chama máquina de estados
     document.getElementById('next-round-btn').addEventListener('click', () => {
       eventBus.emit('advanceToNextRound', {
+        player: this.currentPlayer?.getName(),
         gameKey: this.gameKey,
         currentRound: this.gameState.currentRound
       });
@@ -159,6 +160,14 @@ class GameScreen {
     document.querySelectorAll('.game-state').forEach(state => {
       state.classList.add('hidden');
     });
+  }
+
+  // Inicia nova rodada
+  startNewRound(round) {
+    this.gameState.currentRound = round;
+    this.showChoiceState();
+    this.updateRoundIndicator(round);
+    console.log(`📺 GameScreen: Iniciou nova rodada ${round}`);
   }
 
   // Atualiza indicador de rodada
