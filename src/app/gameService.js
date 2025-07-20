@@ -59,33 +59,34 @@ class GameService {
     eventBus.emit('gameUpdated', { gameKey, gameData });
   }
 
-  // Verifica se rodada está completa e processa
+  // ÁRBITRO: Verifica se rodada está completa e processa
   checkAndProcessRound(gameKey, roundNum, roundChoices, existingResults) {
-    console.log('🔍 checkAndProcessRound:', gameKey, roundNum, roundChoices, existingResults);
+    console.log('🏁 ÁRBITRO: Verificando rodada', gameKey, roundNum);
     
     // Se já processada, skip
     if (existingResults && existingResults[roundNum]) {
-      console.log('🔍 Round already processed, skipping');
+      console.log('🏁 ÁRBITRO: Rodada já processada');
       return;
     }
 
     // Verifica se ambos jogadores escolheram
     const players = Object.keys(roundChoices);
-    console.log('🔍 Players who chose:', players);
+    console.log('🏁 ÁRBITRO: Jogadores que escolheram:', players);
+    
     if (players.length < 2) {
-      console.log('🔍 Not enough players, waiting...');
+      console.log('🏁 ÁRBITRO: Aguardando mais jogadores...');
       return;
     }
 
-    // Processa resultado
+    // ÁRBITRO: Processa resultado
     const [p1, p2] = gameKey.split('-');
     const p1Choice = roundChoices[p1]?.choice;
     const p2Choice = roundChoices[p2]?.choice;
     
-    console.log('🔍 Choices:', { p1, p1Choice, p2, p2Choice });
+    console.log('🏁 ÁRBITRO: Escolhas confirmadas:', { p1, p1Choice, p2, p2Choice });
     
     if (p1Choice && p2Choice) {
-      console.log('🎯 Both players chose! Processing result...');
+      console.log('🏁 ÁRBITRO: Processando resultado da rodada...');
       
       const roundData = {
         round: parseInt(roundNum),
@@ -97,9 +98,9 @@ class GameService {
       };
       
       const resolvedRound = resolveRound(roundData);
-      console.log('🎯 Round resolved:', resolvedRound);
+      console.log('🏁 ÁRBITRO: Resultado calculado:', resolvedRound);
       
-      // Salva resultado
+      // Salva resultado no Firebase
       this.gameRepo.processRoundResult(gameKey, roundNum, {
         player1Choice: p1Choice,
         player2Choice: p2Choice,
@@ -107,10 +108,57 @@ class GameService {
         player2Points: resolvedRound.p2Points
       });
       
-      console.log('🎯 Result saved to Firebase!');
+      // ÁRBITRO: COMANDA UI PARA MOSTRAR RESULTADO
+      console.log('🏁 ÁRBITRO: Comandando UI para mostrar resultado');
+      eventBus.emit('showGameResult', {
+        gameKey,
+        result: {
+          player1Choice: p1Choice,
+          player2Choice: p2Choice,
+          player1Points: resolvedRound.p1Points,
+          player2Points: resolvedRound.p2Points
+        }
+      });
+      
+      // ÁRBITRO: Agenda próxima rodada após delay
+      setTimeout(() => {
+        this.arbitrateNextStep(gameKey, parseInt(roundNum));
+      }, 3000); // 3 segundos para ver resultado
+      
     } else {
-      console.log('🔍 Missing choices, waiting...');
+      console.log('🏁 ÁRBITRO: Escolhas incompletas');
     }
+  }
+  
+  // ÁRBITRO: Decide próximo passo do jogo
+  arbitrateNextStep(gameKey, currentRound) {
+    console.log('🏁 ÁRBITRO: Decidindo próximo passo...', gameKey, currentRound);
+    
+    if (currentRound >= 10) {
+      // Jogo terminou
+      console.log('🏁 ÁRBITRO: Jogo terminado! Calculando resultado final...');
+      this.arbitrateGameComplete(gameKey);
+    } else {
+      // Próxima rodada
+      const nextRound = currentRound + 1;
+      console.log('🏁 ÁRBITRO: Iniciando rodada', nextRound);
+      
+      eventBus.emit('startNextRound', {
+        gameKey,
+        round: nextRound
+      });
+    }
+  }
+  
+  // ÁRBITRO: Finaliza jogo
+  arbitrateGameComplete(gameKey) {
+    // TODO: Calcular scores finais e comandar UI
+    console.log('🏁 ÁRBITRO: Finalizando jogo', gameKey);
+    
+    eventBus.emit('showGameComplete', {
+      gameKey,
+      scores: { 'Arthur': 0, 'Laura': 5 } // Placeholder
+    });
   }
 
   // Para de escutar jogo

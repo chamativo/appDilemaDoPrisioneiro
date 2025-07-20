@@ -13,11 +13,22 @@ class UIRouter {
     this.setupEventListeners();
   }
 
-  // Configura listeners de eventos
+  // Configura listeners de eventos - APENAS COMANDOS DIRETOS
   setupEventListeners() {
-    eventBus.on('gameUpdated', (data) => {
-      console.log('🎮 uiRouter received gameUpdated:', data);
-      this.handleGameUpdate(data);
+    // Comandos específicos do árbitro (gameService)
+    eventBus.on('showGameResult', (data) => {
+      console.log('📺 uiRouter: Showing game result');
+      this.executeShowResult(data);
+    });
+    
+    eventBus.on('startNextRound', (data) => {
+      console.log('📺 uiRouter: Starting next round');
+      this.executeNextRound(data);
+    });
+    
+    eventBus.on('showGameComplete', (data) => {
+      console.log('📺 uiRouter: Game complete');
+      this.executeGameComplete(data);
     });
   }
 
@@ -87,29 +98,26 @@ class UIRouter {
     screen.show(data);
   }
 
-  // Manipula atualizações do jogo
-  handleGameUpdate(data) {
-    const { gameKey, gameData } = data;
-    
-    // Só processa se for o jogo atual
-    if (gameKey !== this.currentGameKey) return;
-    
-    // Só processa se estiver na tela de jogo
+  // COMANDOS EXECUTADOS - NÃO DECIDE, APENAS EXECUTA
+  executeShowResult(data) {
     const gameScreen = this.screens.get('game');
-    if (this.currentScreen !== gameScreen) return;
-    
-    console.log('🎮 Updating game screen with:', gameData);
-    
-    // Determina estado baseado nos dados
-    const { choices, results } = gameData;
-    
-    if (results && results.length > 0) {
-      // Tem resultados - mostrar resultado da última rodada
-      const lastResult = results[results.length - 1];
-      if (lastResult && lastResult.result) {
-        console.log('🎮 Showing result state:', lastResult.result);
-        gameScreen.showResultState(lastResult.result);
-      }
+    if (this.currentScreen === gameScreen && data.gameKey === this.currentGameKey) {
+      gameScreen.showResultState(data.result);
+    }
+  }
+  
+  executeNextRound(data) {
+    const gameScreen = this.screens.get('game');
+    if (this.currentScreen === gameScreen && data.gameKey === this.currentGameKey) {
+      gameScreen.showChoiceState();
+      gameScreen.updateRoundIndicator(data.round);
+    }
+  }
+  
+  executeGameComplete(data) {
+    const gameScreen = this.screens.get('game');
+    if (this.currentScreen === gameScreen && data.gameKey === this.currentGameKey) {
+      gameScreen.showFinalState(data.scores);
     }
   }
 

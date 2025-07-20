@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.019',
-  description: 'Fix UI update - uiRouter listens to gameUpdated events'
+  number: 'v2024.020',
+  description: 'Correct architecture: gameService as referee, uiRouter as screen controller'
 };
 
 // Exibe versão no console
