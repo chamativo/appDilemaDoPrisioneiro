@@ -336,11 +336,18 @@ class TournamentService {
 
       // Determina qual é a próxima rodada baseado no histórico
       let nextRound = 1;
+      console.log(`🏆 TOURNAMENT: Analisando resultados:`, gameData.results);
+      
       if (gameData.results) {
         const completedRounds = Object.keys(gameData.results).map(r => parseInt(r)).sort((a, b) => b - a);
+        console.log(`🏆 TOURNAMENT: Rodadas completas encontradas:`, completedRounds);
+        
         if (completedRounds.length > 0) {
           nextRound = completedRounds[0] + 1;
+          console.log(`🏆 TOURNAMENT: Última rodada completa: ${completedRounds[0]}, próxima será: ${nextRound}`);
         }
+      } else {
+        console.log(`🏆 TOURNAMENT: Nenhum resultado encontrado no gameData`);
       }
       
       history.nextRound = nextRound > 10 ? 10 : nextRound;

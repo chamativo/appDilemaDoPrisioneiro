@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.050',
-  description: 'Fix game continuation bug - reconstruct state and round dots from Firebase history'
+  number: 'v2024.051',
+  description: 'Debug game continuation - add detailed logging for round calculation'
 };
 
 // Exibe versão no console
