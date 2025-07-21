@@ -324,7 +324,10 @@ class TournamentService {
         return null;
       }
 
-      // Extrai histórico de escolhas e resultados
+      // Extrai histórico de escolhas e resultados  
+      console.log(`🏆 TOURNAMENT: gameData.choices:`, gameData.choices);
+      console.log(`🏆 TOURNAMENT: gameData.results:`, gameData.results);
+      
       const history = {
         gameKey,
         choices: gameData.choices || {},
@@ -333,6 +336,8 @@ class TournamentService {
         currentRound: gameData.currentRound || 1,
         scores: gameData.scores || {}
       };
+      
+      console.log(`🏆 TOURNAMENT: History montado:`, history);
 
       // Determina qual é a próxima rodada baseado no histórico
       let nextRound = 1;

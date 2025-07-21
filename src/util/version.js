@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.052',
-  description: 'Fix round calculation - handle Firebase array structure and use currentRound fallback'
+  number: 'v2024.053',
+  description: 'Debug history reconstruction - add detailed logging for choices and results'
 };
 
 // Exibe versão no console

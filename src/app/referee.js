@@ -383,6 +383,8 @@ class Referee {
   // Reconstrói estado completo do jogo baseado no histórico do Firebase
   async reconstructGameState(gameKey, gameHistory) {
     console.log(`🏁 REFEREE: Reconstruindo estado do jogo ${gameKey}`, gameHistory);
+    console.log(`🏁 REFEREE: gameHistory.results:`, gameHistory.results);
+    console.log(`🏁 REFEREE: gameHistory.choices:`, gameHistory.choices);
     
     if (!gameHistory || !gameHistory.results) {
       console.log(`🏁 REFEREE: Sem histórico de resultados para reconstruir`);
