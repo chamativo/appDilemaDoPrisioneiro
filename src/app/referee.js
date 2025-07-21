@@ -89,6 +89,14 @@ class Referee {
     const currentRound = gameHistory?.nextRound || round || 1;
     console.log(`🏁 REFEREE: Jogo será retomado na rodada ${currentRound}`);
 
+    // Cria estado inicial para a rodada atual (se não existir)
+    const currentStateKey = `${gameKey}-${currentRound}`;
+    if (!this.gameStates.has(currentStateKey)) {
+      console.log(`🏁 REFEREE: Criando estado inicial para rodada ${currentRound}`);
+      const initialState = createRoundState(currentRound);
+      this.gameStates.set(currentStateKey, initialState);
+    }
+
     this.setupGameListener(gameKey);
 
     // Envia dados completos para UI reconstruir as bolinhas
@@ -133,6 +141,8 @@ class Referee {
     // Verifica se pode aceitar escolha
     if (!canAcceptChoice(roundState, playerIndex)) {
       console.log(`🏁 REFEREE: Escolha rejeitada - estado inválido`);
+      console.log(`🏁 REFEREE: Estado atual:`, roundState);
+      console.log(`🏁 REFEREE: Player index:`, playerIndex);
       return;
     }
 
