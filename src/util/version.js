@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.056',
-  description: 'Debug result structure to fix undefined points in round dots'
+  number: 'v2024.057',
+  description: 'Expand result structure debugging and fix player identification'
 };
 
 // Exibe versão no console

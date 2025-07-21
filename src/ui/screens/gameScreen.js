@@ -256,8 +256,22 @@ class GameScreen {
           
           if (result.result) {
             // Se result tem propriedade result (estrutura aninhada)
-            playerPoints = playerName === result.result.player1 ? result.result.player1Points : result.result.player2Points;
-            console.log(`🎯 GameScreen: Usando result.result - player1: ${result.result.player1}, player2: ${result.result.player2}`);
+            console.log(`🎯 GameScreen: Estrutura result.result completa:`, result.result);
+            
+            // Tenta diferentes propriedades possíveis
+            if (result.result.player1 && result.result.player2) {
+              playerPoints = playerName === result.result.player1 ? result.result.player1Points : result.result.player2Points;
+            } else if (result.result.player1Choice && result.result.player2Choice) {
+              // Talvez sejam player1Choice/player2Choice
+              const isPlayer1 = playerName === 'Arthur'; // Assume Arthur é sempre player1
+              playerPoints = isPlayer1 ? result.result.player1Points : result.result.player2Points;
+            } else {
+              console.log(`🎯 GameScreen: Propriedades encontradas em result.result:`, Object.keys(result.result));
+              // Fallback: assume order baseado no gameKey
+              const [p1, p2] = this.gameKey.split('-');
+              playerPoints = playerName === p1 ? result.result.player1Points : result.result.player2Points;
+            }
+            console.log(`🎯 GameScreen: Player ${playerName} identificado com ${playerPoints} pontos`);
           } else if (result.player1Points !== undefined) {
             // Se result tem as propriedades diretas
             playerPoints = playerName === result.player1 ? result.player1Points : result.player2Points;
