@@ -337,9 +337,28 @@ class TournamentService {
       // Determina qual é a próxima rodada baseado no histórico
       let nextRound = 1;
       console.log(`🏆 TOURNAMENT: Analisando resultados:`, gameData.results);
+      console.log(`🏆 TOURNAMENT: GameData completo:`, gameData);
       
-      if (gameData.results) {
-        const completedRounds = Object.keys(gameData.results).map(r => parseInt(r)).sort((a, b) => b - a);
+      // Firebase pode armazenar results como Object ou como propriedade do gameData
+      let results = gameData.results;
+      
+      // Se results está undefined, mas currentRound existe, usa currentRound como base
+      if (!results && gameData.currentRound) {
+        console.log(`🏆 TOURNAMENT: Usando currentRound como fallback: ${gameData.currentRound}`);
+        nextRound = gameData.currentRound;
+      } else if (results) {
+        // Se é array, converte para object (índices são as chaves)
+        if (Array.isArray(results)) {
+          console.log(`🏆 TOURNAMENT: Results é array, convertendo:`, results);
+          const resultsObj = {};
+          results.forEach((result, index) => {
+            if (result) resultsObj[index + 1] = result; // Arrays começam em 0, rodadas em 1
+          });
+          results = resultsObj;
+          console.log(`🏆 TOURNAMENT: Results convertido para object:`, results);
+        }
+        
+        const completedRounds = Object.keys(results).map(r => parseInt(r)).sort((a, b) => b - a);
         console.log(`🏆 TOURNAMENT: Rodadas completas encontradas:`, completedRounds);
         
         if (completedRounds.length > 0) {

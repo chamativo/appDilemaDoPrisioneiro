@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.051',
-  description: 'Debug game continuation - add detailed logging for round calculation'
+  number: 'v2024.052',
+  description: 'Fix round calculation - handle Firebase array structure and use currentRound fallback'
 };
 
 // Exibe versão no console
