@@ -177,39 +177,43 @@ Sem login ou instalação
 ARQUITETURA DE CÓDIGO E BOAS PRÁTICAS
 CAMADAS E RESPONSABILIDADES
 Camada	Pasta	Responsável por	Proibições
-domain/	Regra de negócio pura (pontuação, estados, regras)	Nunca acessar Firebase ou DOM	
-data/	Leitura/gravação no Firebase	Não pode acessar DOM	
-app/	Orquestração dos fluxos	Não renderiza nada	
-ui/	Componentes de interface	Nunca faz cálculos de lógica	
-util/	Helpers genéricos	Sem regras de negócio	
+domain/	Regras de negócio puras (pontuação, estados do jogo, máquina de estados, jogadores, torneio)	Nunca acessar Firebase ou DOM	
+data/	Leitura/gravação no Firebase e repositório de dados	Não pode acessar DOM	
+app/	Orquestração dos fluxos (referee como coordenador principal, serviços de torneio, eventBus)	Não renderiza nada	
+ui/	Telas e componentes de interface (screens individuais, roteamento)	Nunca faz cálculos de lógica	
+util/	Helpers genéricos (logger, traduções, versioning)	Sem regras de negócio	
 
 ESTRUTURA DE PASTAS
-pgsql
-Copiar
-Editar
 /src/
   domain/
     scoring.js
     gameState.js
+    gameStateMachine.js
+    player.js
     tournament.js
   data/
     firebaseAdapter.js
     gameRepo.js
   app/
-    gameService.js
+    referee.js
     tournamentService.js
     eventBus.js
   ui/
     screens/
+      dashboardScreen.js
+      gameScreen.js
+      initialScreen.js
+      rankingScreen.js
     components/
     uiRouter.js
   util/
     logger.js
+    translations.js
     version.js
-/public/
+/
   index.html
-  styles.css
   main.js
+  styles.css
 CONTRATOS DE DADOS
 ts
 Copiar
@@ -236,15 +240,17 @@ interface GameRecord {
   status: 'pending' | 'active' | 'complete';
 }
 MÁQUINA DE ESTADOS
-Cada rodada:
+Implementada em gameStateMachine.js:
 
-Aguardar escolha do jogador
+Estados do jogo: 'waiting', 'playing', 'complete'
 
-Aguardar escolha do oponente
+Estados da rodada: 'waitingForPlayers', 'waitingForOpponent', 'showingResult'
 
-Processar rodada
+Transições automáticas baseadas nas escolhas dos jogadores
 
-Após rodada 10: marcar jogo como complete
+Referee usa a máquina de estados para coordenar o fluxo
+
+Após rodada 10: transição automática para estado 'complete'
 
 FUNÇÕES PURAS
 Toda regra de pontuação é implementada em funções puras, testadas e desacopladas de interface ou Firebase.
@@ -275,18 +281,101 @@ REGRAS DE QUALIDADE DE CÓDIGO
 ✅ logger.js para depuração (substitui console.log)
 ✅ Testes unitários obrigatórios em test/ para camada domain/
 
+DINÂMICA DE CONTROLE E PASSAGEM DE HANDLER
+
+RESPONSABILIDADES DOS COMPONENTES
+
+MAIN.JS - ORQUESTRADOR INICIAL
+✅ Entrada da aplicação e configuração inicial
+✅ Conecta todos os serviços ao Firebase
+✅ Injeta dependências (services) no uiRouter
+✅ Registra todas as screens no uiRouter
+✅ Cria instância de Player quando jogador é selecionado
+✅ Escuta eventos globais: playerSelected, changePlayer, resetTournament, showRanking
+✅ Sempre navega para tela inicial no início
+✅ Mantém cache de instâncias Player
+
+TOURNAMENTSERVICE - CONTROLADOR PRINCIPAL DO TORNEIO
+✅ ASSUME controle quando jogador é selecionado (via setCurrentPlayer())
+✅ Responsável por gerenciar estado completo do torneio para o player atual
+✅ Carrega dados do dashboard (jogos ativos, completos, novos) do Firebase
+✅ DELEGA início/retomada de jogos para o Referee via eventos
+✅ RETOMA controle quando jogos terminam (handleGameCompleted)
+✅ Mantém estado do currentPlayerName e currentPlayerInstance
+✅ Escuta: playerSelected, startNewGame, resumeGame, refereeGameComplete, backToDashboard
+✅ Emite: tournamentNavigateToDashboard, tournamentDashboardReady, tournamentDelegatesNewGame, tournamentDelegatesResumeGame
+
+REFEREE - ÁRBITRO E PROCESSADOR DE REGRAS
+✅ RECEBE controle delegado do TournamentService para jogos específicos
+✅ Processa regras puras do Dilema do Prisioneiro
+✅ Mantém máquina de estados de cada rodada (gameStates Map)
+✅ Sincroniza estado via Firebase listeners em tempo real
+✅ Processa escolhas, calcula resultados, avança rodadas
+✅ DEVOLVE controle ao TournamentService quando jogo termina
+✅ Escuta: tournamentDelegatesNewGame, tournamentDelegatesResumeGame, makeChoice, advanceToNextRound, backToDashboard
+✅ Emite: refereeGameStarted, refereeGameResumed, refereeShowResult, refereeRoundStarted, refereeGameComplete
+
+UIROUTER - EXECUTOR DE COMANDOS DE NAVEGAÇÃO
+✅ NUNCA decide - apenas executa comandos de outros componentes
+✅ Responde a comandos diretos: navegar, atualizar dados, mostrar resultado
+✅ Não possui lógica de negócio ou estado próprio
+✅ Escuta: refereeShowResult, tournamentNavigateToDashboard, tournamentDashboardReady, refereeGameStarted, refereeGameResumed, refereeRoundStarted, showGameComplete
+✅ Chama métodos das screens com dados fornecidos pelos comandos
+✅ Mantém referência apenas da tela atual (currentScreen)
+
+FLUXO DE PASSAGEM DE CONTROLE
+
+SELEÇÃO DE JOGADOR:
+1. User clica em jogador → Main.js escuta 'playerSelected'
+2. Main.js cria Player instance → chama tournamentService.setCurrentPlayer()
+3. TournamentService ASSUME controle → carrega dados do torneio
+4. TournamentService emite 'tournamentNavigateToDashboard' → uiRouter navega
+5. TournamentService emite 'tournamentDashboardReady' → uiRouter atualiza dados
+
+INÍCIO DE NOVO JOGO:
+1. User clica "Novo Jogo" → TournamentService escuta 'startNewGame'
+2. TournamentService DELEGA ao Referee → emite 'tournamentDelegatesNewGame'
+3. Referee ASSUME controle do jogo → cria estado, setup listeners
+4. Referee emite 'refereeGameStarted' → uiRouter navega para game screen
+
+JOGO EM ANDAMENTO:
+- Referee mantém controle total
+- Processa escolhas, calcula resultados, avança rodadas
+- uiRouter apenas executa comandos (mostrar resultado, próxima rodada, etc.)
+
+TÉRMINO DE JOGO:
+1. Referee detecta jogo completo → salva no Firebase
+2. Referee emite 'refereeGameComplete' → TournamentService recebe
+3. TournamentService RETOMA controle → atualiza scores, recarrega dashboard
+4. TournamentService emite 'tournamentDashboardReady' → uiRouter atualiza
+
+VOLTA AO DASHBOARD:
+1. User clica "Dashboard" → emite 'backToDashboard'
+2. TournamentService escuta → RETOMA controle se tiver currentPlayer
+3. TournamentService recarrega dados → uiRouter navega e atualiza
+
+MOMENTOS DE HANDOFF (PASSAGEM DE CONTROLE):
+- Main.js → TournamentService: quando jogador é selecionado
+- TournamentService → Referee: quando jogo é iniciado/retomado
+- Referee → TournamentService: quando jogo termina
+- Cualquer → TournamentService: quando user volta ao dashboard (se há currentPlayer)
+
 FLUXO DE EVENTOS
-UI chama submitChoice(player, gameKey, round, choice)
+UI emite eventos através do eventBus
 
-AppService valida e delega ao gameRepo
+TournamentService coordena fluxo do torneio e delega jogos
 
-Firebase propaga mudança
+Referee processa regras e mantém estado do jogo
 
-Listener (syncController) detecta rodada completa e processa resultado
+GameRepo persiste no Firebase via firebaseAdapter
 
-Resultado sincronizado com ambos jogadores
+Firebase propaga mudanças em tempo real
 
-UI mostra feedback visual
+EventBus notifica componentes interessados
+
+Referee sincroniza estado e processa lógica completa
+
+UI atualiza através de comandos específicos via uiRouter
 
 CASOS DE USO TÍPICOS
 Cenário 1 - Início de novo jogo

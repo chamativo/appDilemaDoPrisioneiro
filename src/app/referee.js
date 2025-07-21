@@ -77,23 +77,27 @@ class Referee {
   }
 
   async handleTournamentResumeGame(data) {
-    const { gameKey, player, round, currentPlayer } = data;
+    const { gameKey, player, round, currentPlayer, gameHistory } = data;
     console.log(`🏁 REFEREE: TournamentService delegou retomar jogo ${gameKey} rodada ${round}`);
     
-    // TODO: Recuperar estado do Firebase se necessário
-    const stateKey = `${gameKey}-${round}`;
-    if (!this.gameStates.has(stateKey)) {
-      const state = createRoundState(round);
-      this.gameStates.set(stateKey, state);
+    // Reconstrói estado completo do jogo baseado no histórico
+    if (gameHistory) {
+      await this.reconstructGameState(gameKey, gameHistory);
     }
+
+    // Determina rodada atual baseada no histórico
+    const currentRound = gameHistory?.nextRound || round || 1;
+    console.log(`🏁 REFEREE: Jogo será retomado na rodada ${currentRound}`);
 
     this.setupGameListener(gameKey);
 
+    // Envia dados completos para UI reconstruir as bolinhas
     eventBus.emit('refereeGameResumed', {
       gameKey,
-      round,
-      state: this.gameStates.get(stateKey).state,
-      currentPlayer: currentPlayer
+      round: currentRound,
+      state: this.getCurrentGameState(gameKey, currentRound),
+      currentPlayer: currentPlayer,
+      gameHistory: gameHistory // Inclui histórico para UI
     });
   }
 
@@ -374,6 +378,59 @@ class Referee {
       }
     }
     return 1; // Default para rodada 1
+  }
+
+  // Reconstrói estado completo do jogo baseado no histórico do Firebase
+  async reconstructGameState(gameKey, gameHistory) {
+    console.log(`🏁 REFEREE: Reconstruindo estado do jogo ${gameKey}`, gameHistory);
+    
+    if (!gameHistory || !gameHistory.results) {
+      console.log(`🏁 REFEREE: Sem histórico de resultados para reconstruir`);
+      return;
+    }
+
+    const { results, choices } = gameHistory;
+    
+    // Para cada rodada com resultado, reconstrói o estado
+    Object.keys(results).forEach(roundStr => {
+      const round = parseInt(roundStr);
+      const roundResult = results[roundStr];
+      
+      console.log(`🏁 REFEREE: Reconstruindo rodada ${round}:`, roundResult);
+      
+      // Cria estado da rodada com resultado
+      const stateKey = `${gameKey}-${round}`;
+      let roundState = createRoundState(round);
+      
+      // Aplica escolhas se existirem
+      if (choices && choices[roundStr]) {
+        const [p1, p2] = gameKey.split('-');
+        const roundChoices = choices[roundStr];
+        
+        if (roundChoices[p1]) {
+          roundState = applyPlayerChoice(roundState, 'p1', roundChoices[p1].choice);
+        }
+        if (roundChoices[p2]) {
+          roundState = applyPlayerChoice(roundState, 'p2', roundChoices[p2].choice);
+        }
+      }
+      
+      // Adiciona resultado
+      roundState = addResult(roundState, roundResult);
+      
+      // Salva estado reconstituído
+      this.gameStates.set(stateKey, roundState);
+      console.log(`🏁 REFEREE: Estado rodada ${round} reconstruído:`, roundState);
+    });
+    
+    console.log(`🏁 REFEREE: Reconstrução completa. Estados salvos:`, Array.from(this.gameStates.keys()).filter(k => k.startsWith(gameKey)));
+  }
+
+  // Obtém estado atual do jogo (útil para UI)
+  getCurrentGameState(gameKey, round) {
+    const stateKey = `${gameKey}-${round}`;
+    const state = this.gameStates.get(stateKey);
+    return state ? state.state : GAME_STATES.WAITING_CHOICES;
   }
 }
 

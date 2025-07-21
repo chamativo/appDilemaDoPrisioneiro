@@ -223,8 +223,35 @@ class GameScreen {
     this.element.innerHTML = this.render();
     this.setupEvents();
     
+    // Se há histórico, reconstrói as bolinhas baseado nos resultados passados
+    if (data.gameHistory) {
+      this.reconstructRoundDots(data.gameHistory);
+    }
+    
     this.showChoiceState();
     this.updateRoundIndicator(this.gameState.currentRound);
+  }
+
+  // Reconstrói bolinhas das rodadas baseado no histórico
+  reconstructRoundDots(gameHistory) {
+    if (!gameHistory || !gameHistory.results) return;
+    
+    console.log('🎯 GameScreen: Reconstruindo bolinhas baseado no histórico', gameHistory);
+    
+    const playerName = this.currentPlayer.getName();
+    const [p1, p2] = this.gameKey.split('-');
+    
+    // Para cada resultado no histórico, atualiza a bolinha correspondente
+    Object.keys(gameHistory.results).forEach(roundStr => {
+      const round = parseInt(roundStr);
+      const result = gameHistory.results[roundStr];
+      
+      // Determina pontos do jogador atual
+      const playerPoints = playerName === p1 ? result.player1Points : result.player2Points;
+      
+      console.log(`🎯 GameScreen: Reconstruindo bolinha rodada ${round} com ${playerPoints} pontos`);
+      this.updateRoundDotWithPoints(round, playerPoints);
+    });
   }
 
   // Esconde tela

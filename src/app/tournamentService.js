@@ -96,12 +96,17 @@ class TournamentService {
   async handleResumeGame(data) {
     console.log(`🏆 TOURNAMENT: Retomando jogo ${data.gameKey} na rodada ${data.round || 1}`);
     
-    // Delega ao Referee
+    // Busca histórico completo do jogo do Firebase
+    const gameHistory = await this.loadGameHistory(data.gameKey);
+    console.log(`🏆 TOURNAMENT: Histórico carregado:`, gameHistory);
+    
+    // Delega ao Referee com histórico
     eventBus.emit('tournamentDelegatesResumeGame', {
       gameKey: data.gameKey,
       player: this.currentPlayerName,
       round: data.round || 1,
-      currentPlayer: this.currentPlayerInstance
+      currentPlayer: this.currentPlayerInstance,
+      gameHistory: gameHistory
     });
   }
 
@@ -306,6 +311,47 @@ class TournamentService {
   // Gera todos os jogos possíveis
   getAllGamePairs() {
     return generateAllGamePairs();
+  }
+
+  // Carrega histórico completo de um jogo para retomada
+  async loadGameHistory(gameKey) {
+    try {
+      console.log(`🏆 TOURNAMENT: Carregando histórico completo do jogo ${gameKey}`);
+      
+      const gameData = await this.gameRepo.getGameData(gameKey);
+      if (!gameData) {
+        console.log(`🏆 TOURNAMENT: Jogo ${gameKey} não encontrado no Firebase`);
+        return null;
+      }
+
+      // Extrai histórico de escolhas e resultados
+      const history = {
+        gameKey,
+        choices: gameData.choices || {},
+        results: gameData.results || {},
+        status: gameData.status || 'active',
+        currentRound: gameData.currentRound || 1,
+        scores: gameData.scores || {}
+      };
+
+      // Determina qual é a próxima rodada baseado no histórico
+      let nextRound = 1;
+      if (gameData.results) {
+        const completedRounds = Object.keys(gameData.results).map(r => parseInt(r)).sort((a, b) => b - a);
+        if (completedRounds.length > 0) {
+          nextRound = completedRounds[0] + 1;
+        }
+      }
+      
+      history.nextRound = nextRound > 10 ? 10 : nextRound;
+
+      console.log(`🏆 TOURNAMENT: Histórico processado - próxima rodada: ${history.nextRound}`);
+      return history;
+
+    } catch (error) {
+      console.error(`🏆 TOURNAMENT: Erro ao carregar histórico do jogo ${gameKey}:`, error);
+      return null;
+    }
   }
 }
 

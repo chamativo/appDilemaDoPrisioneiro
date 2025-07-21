@@ -57,7 +57,8 @@ class UIRouter {
       this.navigateTo('game', {
         gameKey: data.gameKey,
         currentPlayer: data.currentPlayer,
-        currentRound: data.round
+        currentRound: data.round,
+        gameHistory: data.gameHistory // Passa histórico para UI
       });
     });
 
