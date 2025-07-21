@@ -352,12 +352,18 @@ class TournamentService {
         console.log(`🏆 TOURNAMENT: Usando currentRound como fallback: ${gameData.currentRound}`);
         nextRound = gameData.currentRound;
       } else if (results) {
-        // Se é array, converte para object (índices são as chaves)
+        // Se é array, converte para object (índices corretos)
         if (Array.isArray(results)) {
           console.log(`🏆 TOURNAMENT: Results é array, convertendo:`, results);
           const resultsObj = {};
           results.forEach((result, index) => {
-            if (result) resultsObj[index + 1] = result; // Arrays começam em 0, rodadas em 1
+            if (result) {
+              // O Firebase armazena na posição do array igual à rodada (rodada 1 = índice 1)
+              const round = index;
+              if (round > 0) { // Ignora índice 0 que pode estar vazio
+                resultsObj[round] = result;
+              }
+            }
           });
           results = resultsObj;
           console.log(`🏆 TOURNAMENT: Results convertido para object:`, results);

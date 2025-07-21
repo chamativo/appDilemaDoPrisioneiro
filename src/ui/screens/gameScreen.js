@@ -223,13 +223,13 @@ class GameScreen {
     this.element.innerHTML = this.render();
     this.setupEvents();
     
-    // Se há histórico, reconstrói as bolinhas baseado nos resultados passados
+    this.showChoiceState();
+    this.updateRoundIndicator(this.gameState.currentRound);
+    
+    // Se há histórico, reconstrói as bolinhas DEPOIS de criar os elementos
     if (data.gameHistory) {
       this.reconstructRoundDots(data.gameHistory);
     }
-    
-    this.showChoiceState();
-    this.updateRoundIndicator(this.gameState.currentRound);
   }
 
   // Reconstrói bolinhas das rodadas baseado no histórico
@@ -240,18 +240,35 @@ class GameScreen {
     
     const playerName = this.currentPlayer.getName();
     const [p1, p2] = this.gameKey.split('-');
+    let results = gameHistory.results;
     
-    // Para cada resultado no histórico, atualiza a bolinha correspondente
-    Object.keys(gameHistory.results).forEach(roundStr => {
-      const round = parseInt(roundStr);
-      const result = gameHistory.results[roundStr];
-      
-      // Determina pontos do jogador atual
-      const playerPoints = playerName === p1 ? result.player1Points : result.player2Points;
-      
-      console.log(`🎯 GameScreen: Reconstruindo bolinha rodada ${round} com ${playerPoints} pontos`);
-      this.updateRoundDotWithPoints(round, playerPoints);
-    });
+    // Se results é array, processa cada índice
+    if (Array.isArray(results)) {
+      console.log('🎯 GameScreen: Results é array, processando índices');
+      results.forEach((result, index) => {
+        if (result && index > 0) { // Pula índice 0 vazio
+          const round = index; // Rodada = índice do array
+          
+          // Determina pontos do jogador atual
+          const playerPoints = playerName === result.player1 ? result.player1Points : result.player2Points;
+          
+          console.log(`🎯 GameScreen: Reconstruindo bolinha rodada ${round} com ${playerPoints} pontos`);
+          this.updateRoundDotWithPoints(round, playerPoints);
+        }
+      });
+    } else {
+      // Se é object, usa as chaves
+      Object.keys(results).forEach(roundStr => {
+        const round = parseInt(roundStr);
+        const result = results[roundStr];
+        
+        // Determina pontos do jogador atual
+        const playerPoints = playerName === result.player1 ? result.player1Points : result.player2Points;
+        
+        console.log(`🎯 GameScreen: Reconstruindo bolinha rodada ${round} com ${playerPoints} pontos`);
+        this.updateRoundDotWithPoints(round, playerPoints);
+      });
+    }
   }
 
   // Esconde tela

@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.054',
-  description: 'Fix Firebase data retrieval - include choices and results in getGameData response'
+  number: 'v2024.055',
+  description: 'Fix array index mapping and round dot reconstruction timing'
 };
 
 // Exibe versão no console
