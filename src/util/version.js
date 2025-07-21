@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.055',
-  description: 'Fix array index mapping and round dot reconstruction timing'
+  number: 'v2024.056',
+  description: 'Debug result structure to fix undefined points in round dots'
 };
 
 // Exibe versão no console

@@ -249,10 +249,25 @@ class GameScreen {
         if (result && index > 0) { // Pula índice 0 vazio
           const round = index; // Rodada = índice do array
           
-          // Determina pontos do jogador atual
-          const playerPoints = playerName === result.player1 ? result.player1Points : result.player2Points;
+          console.log(`🎯 GameScreen: Dados do resultado da rodada ${round}:`, result);
           
-          console.log(`🎯 GameScreen: Reconstruindo bolinha rodada ${round} com ${playerPoints} pontos`);
+          // Verifica diferentes estruturas possíveis dos dados
+          let playerPoints;
+          
+          if (result.result) {
+            // Se result tem propriedade result (estrutura aninhada)
+            playerPoints = playerName === result.result.player1 ? result.result.player1Points : result.result.player2Points;
+            console.log(`🎯 GameScreen: Usando result.result - player1: ${result.result.player1}, player2: ${result.result.player2}`);
+          } else if (result.player1Points !== undefined) {
+            // Se result tem as propriedades diretas
+            playerPoints = playerName === result.player1 ? result.player1Points : result.player2Points;
+            console.log(`🎯 GameScreen: Usando propriedades diretas - player1: ${result.player1}, player2: ${result.player2}`);
+          } else {
+            console.log(`🎯 GameScreen: Estrutura desconhecida:`, result);
+            playerPoints = 0; // fallback
+          }
+          
+          console.log(`🎯 GameScreen: Player ${playerName} - pontos: ${playerPoints}`);
           this.updateRoundDotWithPoints(round, playerPoints);
         }
       });
