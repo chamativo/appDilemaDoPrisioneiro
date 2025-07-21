@@ -18,7 +18,7 @@ class GameScreen {
     return `
       <div id="game-screen" class="screen">
         <div class="game-header">
-          <h2>${playerName} vs ${opponent}</h2>
+          <h2><u>${playerName}</u> vs ${opponent}</h2>
           <div id="round-indicator">Rodada 1/10</div>
           <div id="round-dots" class="round-indicators"></div>
         </div>
