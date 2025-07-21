@@ -1,7 +1,7 @@
 // Versão do sistema conforme especificação
 export const VERSION = {
-  number: 'v2024.053',
-  description: 'Debug history reconstruction - add detailed logging for choices and results'
+  number: 'v2024.054',
+  description: 'Fix Firebase data retrieval - include choices and results in getGameData response'
 };
 
 // Exibe versão no console

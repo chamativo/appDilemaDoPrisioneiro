@@ -101,7 +101,9 @@ class FirebaseAdapter {
         return {
           status: 'completed',
           scores: complete.scores,
-          currentRound: 10
+          currentRound: 10,
+          choices: choices,
+          results: results
         };
       }
 
@@ -113,7 +115,9 @@ class FirebaseAdapter {
         return {
           status: 'active',
           currentRound: parseInt(unprocessedRounds[0]),
-          scores: this.calculateCurrentScores(results)
+          scores: this.calculateCurrentScores(results),
+          choices: choices,
+          results: results
         };
       }
 
@@ -125,21 +129,27 @@ class FirebaseAdapter {
           return {
             status: 'completed',
             currentRound: 10,
-            scores: this.calculateCurrentScores(results)
+            scores: this.calculateCurrentScores(results),
+            choices: choices,
+            results: results
           };
         }
         
         return {
           status: 'active',
           currentRound: nextRound,
-          scores: this.calculateCurrentScores(results)
+          scores: this.calculateCurrentScores(results),
+          choices: choices,
+          results: results
         };
       }
 
       return {
         status: 'new',
         currentRound: 1,
-        scores: {}
+        scores: {},
+        choices: choices,
+        results: results
       };
     } catch (error) {
       console.error('Erro ao buscar dados do jogo:', error);
